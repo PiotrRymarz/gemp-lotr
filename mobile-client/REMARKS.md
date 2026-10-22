@@ -36,6 +36,26 @@ What makes this hard on a phone:
 - A fixed multi-column desktop layout. The side panels take space the game table needs.
 - Small click targets (tabs, the "+" buttons, the cards themselves).
 
+## Game hall screen (desktop)
+
+![Game hall](screenshots/game-hall-desktop.png)
+
+Areas on the screen, top to bottom:
+
+- **Main tabs:** Game Hall, Help, Events, Server Info and My Account.
+- **Link buttons:** Report a Bug, Report a Player, Join the PC Discord, Browse the LOTR-TCG Wiki and Merchant (crossed out).
+- **MOTD:** the message of the day, for example a league announcement with a link.
+- **Table lists:** collapsible sections for Waiting Tables, Playing Tables, Finished Tables and Recurring Events. Each table is a row with the columns Format, Table Info, Status (for example "At sites: 5, 5" or "Waiting 01:17"), Players and Actions (Join Table, Play Match or Spectate). Your own game is highlighted in red.
+- **Bottom bar:** connection status, the **Deck-builder** and **Play** buttons, and the server date and time.
+- **Chat:** an embedded Discord chat (WidgetBot) with channels and messages, an online players list with status badges (online, admin), and a "Switch to Legacy" button.
+
+What makes this hard on a phone:
+
+- The 5-column tables are too wide for a phone. The Table Info and Players text gets squeezed or forces sideways scrolling.
+- The two rows of tabs and link buttons take a lot of height and wrap on a narrow screen.
+- The Discord widget and the players list sit next to each other, which doesn't fit beside or under the tables on a phone.
+- The important actions (Play Match, Join Table, Play, Deck-builder) are spread around the screen.
+
 ## Remarks
 
 <!-- Add remarks below, one per bullet. Group them under headings if useful. -->
@@ -48,7 +68,7 @@ What makes this hard on a phone:
 - **Orientation and devices:** phones in both portrait and landscape, and tablets too.
 - **Drag and drop:** tap-then-tap is enough for the first version; drag and drop later.
 - **Switching views:** phones and tablets open the mobile screens automatically, with an option to go back to the standard view.
-- **Game hall:** the hall screen also needs a mobile PWA version (screenshot to follow).
+- **Game hall:** the hall screen also needs a mobile PWA version (see the "Game hall screen" section above).
 
 ## Open questions
 

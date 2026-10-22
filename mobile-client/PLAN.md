@@ -115,6 +115,34 @@ How it addresses your remarks:
 
 ---
 
+### Proposed mobile game hall
+
+```
+┌──────────────────────────────┐
+│ GEMP          ● Connected  ☰ │  top bar; ☰ opens Help, Events, Server Info,
+├──────────────────────────────┤  My Account and the link buttons
+│ ⓘ MOTD (one line, tap to open)│
+├──────────────────────────────┤
+│ ▶ YOUR GAME                  │  your own game is always pinned on top
+│ Movie Block · Casual-Glacial │
+│ vs tadeorn-son-of-pedreon    │
+│ Sites 5–5      [ Play Match ]│
+├──────────────────────────────┤
+│ Waiting (1) │ Playing (6) │… │  sections as tabs or collapsible lists
+│ ┌──────────────────────────┐ │
+│ │ Fellowship Block · Casual│ │  each table is a card instead of a row:
+│ │ Longshanks · waiting 1:17│ │  format, table info, players, status
+│ │             [ Join Table ]│ │  and one big action button
+│ └──────────────────────────┘ │
+├──────────────────────────────┤
+│ Hall │ Play │ Decks │ Chat │ ⋯│  bottom navigation, always visible
+└──────────────────────────────┘
+```
+
+- **Play** opens creating or joining a table. **Chat** shows the Discord chat and the online players full screen.
+- On tablets and in landscape, the table list and the chat sit side by side.
+- The menu has a "Standard view" switch back to the desktop hall.
+
 ## 4. Phases
 
 Each phase is a set of small commits on the `Piotr-Mobile` branch, and each one ends in something you can try out.
@@ -177,7 +205,7 @@ Each phase is a set of small commits on the `Piotr-Mobile` branch, and each one 
 2. **Drag and drop:** **tap-then-tap** for the first version. Drag and drop comes later.
 3. **Test server:** to be decided. My recommendation is in the next section.
 4. **Opening the mobile view:** phones and tablets switch to the mobile screens **automatically**, with an option to go back to the standard (desktop) view.
-5. **Scope:** the **game hall** also gets a mobile PWA version, not only the game screen. Piotr will share a screenshot of the hall.
+5. **Scope:** the **game hall** also gets a mobile PWA version, not only the game screen. See the screenshot and notes in REMARKS.md, and the proposed layout in section 3.
 
 Effect on the phases:
 
