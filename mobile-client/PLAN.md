@@ -171,10 +171,23 @@ Each phase is a set of small commits on the `Piotr-Mobile` branch, and each one 
 
 ---
 
-## 6. Open questions for Piotr
+## 6. Decisions (answered by Piotr)
 
-1. **Orientation:** should phones play in **portrait**, **landscape** or both?
-2. **Drag and drop:** where exactly do you want it? For example, assigning minions to companions, or playing cards from the hand. Is tap-then-tap enough as the first version?
-3. **Server for testing:** is there a test server we can deploy to, or should I set up a local one in this environment (the repo has a `docker/` setup)? Installing a PWA requires **HTTPS**, except on `localhost`.
-4. **Opening the mobile view:** should the hall switch to the mobile game screen automatically on phones, or only when the player chooses it?
-5. **Scope of the first release:** is the game screen enough at first, with the hall and deck builder kept as they are?
+1. **Orientation:** phones play in both **portrait and landscape**. **Tablets** are covered from the start, not only in Phase 5.
+2. **Drag and drop:** **tap-then-tap** for the first version. Drag and drop comes later.
+3. **Test server:** to be decided. My recommendation is in the next section.
+4. **Opening the mobile view:** phones and tablets switch to the mobile screens **automatically**, with an option to go back to the standard (desktop) view.
+5. **Scope:** the **game hall** also gets a mobile PWA version, not only the game screen. Piotr will share a screenshot of the hall.
+
+Effect on the phases:
+
+- The tablet and landscape layouts move from Phase 5 into Phases 1–3. Every screen is designed for phone portrait, phone landscape and tablet from the start.
+- The mobile hall moves up from "make it usable" to a proper mobile hall screen in Phase 4.
+
+## 7. Test server
+
+- **For development:** a local server inside this cloud environment. Docker, Java and Maven are all available here, and the repo has a `docker/` setup. I can run the server with a test database, and test the mobile screens in an emulated phone browser. Nothing is needed from you for this.
+- **For trying it on your own phone:** the server must be reachable from the internet over **HTTPS**. There are two options:
+  - **Free and quick:** run the docker setup on your own computer and expose it with a tunnel such as Cloudflare Tunnel (free, gives an HTTPS address). It only works while your computer is on.
+  - **Always on:** a small cloud server (Azure, Hetzner, DigitalOcean…) running the docker setup behind Caddy or nginx with a free Let's Encrypt certificate. Around 5–30 EUR a month depending on the provider and size. Azure works fine; Hetzner or DigitalOcean are simpler and cheaper.
+- This isn't needed until Phase 2 (playing a game from your phone), so there's no rush.

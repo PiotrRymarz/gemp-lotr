@@ -45,6 +45,11 @@ What makes this hard on a phone:
 - **Covered cards:** cards that sit under other cards (attached or stacked) can't be seen, so there's no way to tell what's there.
 - **Layout confirmed:** the top of the game screen is the opponent's area.
 
+- **Orientation and devices:** phones in both portrait and landscape, and tablets too.
+- **Drag and drop:** tap-then-tap is enough for the first version; drag and drop later.
+- **Switching views:** phones and tablets open the mobile screens automatically, with an option to go back to the standard view.
+- **Game hall:** the hall screen also needs a mobile PWA version (screenshot to follow).
+
 ## Open questions
 
--
+- Test server: local in the cloud environment for development; a public HTTPS server for testing on a real phone (see PLAN.md, section 7).
