@@ -139,6 +139,10 @@ async function playerLoop(player, gameId, state) {
         const events = findAll(root, "ge");
         let decision = null;
         for (const event of events) {
+            // The closing message links the replays: ...replayId%3Dasdf$abc123...
+            const replays = (event.attrs.message || "").match(/replayId%3D[^%\s&'"]+/g);
+            if (replays)
+                replays.forEach(r => state.replays.add(r.substring("replayId%3D".length)));
             if (event.attrs.type == "EG")
                 state.ended = true;
             if (event.attrs.type == "D")
@@ -200,11 +204,13 @@ async function main() {
         throw new Error("The game did not start");
     console.log("game " + gameId + " started (spectate: " + BASE + "/gemp-lotr/game.html?gameId=" + gameId + ")");
 
-    const state = {ended: false, decisions: 0};
+    const state = {ended: false, decisions: 0, replays: new Set()};
     const started = Date.now();
     await Promise.all(PLAYERS.filter(p => PLAYING.includes(p.login)).map(p => playerLoop(p, gameId, state)));
     console.log("game " + gameId + " ended after " + state.decisions + " decisions in "
         + Math.round((Date.now() - started) / 1000) + " s");
+    if (state.replays.size > 0)
+        console.log("replays: " + [...state.replays].join(" "));
 }
 
 main().catch(e => {
