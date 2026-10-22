@@ -40,7 +40,10 @@ What makes this hard on a phone:
 
 <!-- Add remarks below, one per bullet. Group them under headings if useful. -->
 
--
+- **Screen space:** the cards are large images, and they don't fit on a phone screen. You have to drag the whole page around to see the different groups of cards.
+- **Interaction:** the UI has no drag and drop. Every action takes clicks (taps), all over the screen.
+- **Covered cards:** cards that sit under other cards (attached or stacked) can't be seen, so there's no way to tell what's there.
+- **Layout confirmed:** the top of the game screen is the opponent's area.
 
 ## Open questions
 
