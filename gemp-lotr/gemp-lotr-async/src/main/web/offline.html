@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1a1a1a">
+    <title>GEMP: LotR-TCG - Offline</title>
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            color: #ddd;
+            font-family: sans-serif;
+            text-align: center;
+            padding: 0 16px;
+        }
+        img {
+            width: 96px;
+            height: 96px;
+        }
+        button {
+            margin-top: 16px;
+            padding: 12px 24px;
+            font-size: 16px;
+            border: 1px solid #a07d2c;
+            border-radius: 6px;
+            background: #3a2a10;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <img src="/gemp-lotr/images/icons/android-chrome-192x192.png" alt="">
+        <h1>You're offline</h1>
+        <p>GEMP needs an internet connection to reach the game server.</p>
+        <button onclick="location.reload()">Try again</button>
+    </div>
+</body>
+</html>

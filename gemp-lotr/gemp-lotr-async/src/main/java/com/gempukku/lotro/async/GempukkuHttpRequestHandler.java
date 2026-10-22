@@ -154,8 +154,16 @@ public class GempukkuHttpRequestHandler extends SimpleChannelInboundHandler<Full
         String contentType;
         if (fileName.endsWith(".html")) {
             contentType = "text/html; charset=UTF-8";
+        } else if (fileName.equals("sw.js")) {
+            // The PWA service worker must reach players as soon as it changes
+            disableCaching = true;
+            contentType = "application/javascript; charset=UTF-8";
         } else if (fileName.endsWith(".js")) {
             contentType = "application/javascript; charset=UTF-8";
+        } else if (fileName.endsWith(".webmanifest")) {
+            contentType = "application/manifest+json; charset=UTF-8";
+        } else if (fileName.endsWith(".json")) {
+            contentType = "application/json; charset=UTF-8";
         } else if (fileName.endsWith(".css")) {
             contentType = "text/css; charset=UTF-8";
         } else if (fileName.endsWith(".jpg")) {
@@ -167,6 +175,12 @@ public class GempukkuHttpRequestHandler extends SimpleChannelInboundHandler<Full
         } else if (fileName.endsWith(".gif")) {
             cache = true;
             contentType = "image/gif";
+        } else if (fileName.endsWith(".webp")) {
+            cache = true;
+            contentType = "image/webp";
+        } else if (fileName.endsWith(".ico")) {
+            cache = true;
+            contentType = "image/x-icon";
         }
         else if (fileName.endsWith(".svg")) {
             cache = true;

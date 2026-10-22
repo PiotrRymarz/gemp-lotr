@@ -147,7 +147,26 @@ How it addresses your remarks:
 
 Each phase is a set of small commits on the `Piotr-Mobile` branch, and each one ends in something you can try out.
 
-### Phase 0 – PWA shell and groundwork
+### Phase 0 – PWA shell and groundwork ✅ done
+
+What was built:
+
+- `images/icons/site.webmanifest`: name "GEMP: LotR-TCG", short name "GEMP", start page `/gemp-lotr/hall.html`, scope `/gemp-lotr/`, standalone display, any orientation, dark theme color, and the 192 px and 512 px icons with absolute paths.
+- `sw.js` (served at `/gemp-lotr/sw.js`): the service worker. For the site's own static files it always tries the server first and falls back to the saved copy only when the server can't be reached. It keeps one copy per page whatever the query string. It never handles game or server calls (`/gemp-lotr-server/…`), share links or card images from other hosts. A page that was never visited shows `offline.html` when the server can't be reached.
+- `js/gemp-022/pwa.js`: registers the service worker. It's included in `index.html`, `hall.html` and `game.html`, together with a `theme-color` tag.
+- Server (`GempukkuHttpRequestHandler.getHeadersForFile`): correct content types for `.webmanifest`, `.json`, `.webp` and `.ico`, and no HTTP caching for `sw.js`, so a new version reaches players right away.
+- `mobile-client/dev/start-local-server.sh`: starts a local server (MariaDB in Docker, server built with Maven) for development. Test login: `asdf` / `asdf`.
+
+Checked on the local server in an emulated Pixel 7 browser:
+
+- The manifest, icons and `sw.js` are served with the right types.
+- The service worker installs and controls the pages. 97 static files were cached and 0 server calls.
+- With the server stopped, the hall still opens from the saved copy, and a never-visited page shows the offline page.
+
+The viewport tag was **not** added to the existing login and hall pages. Their desktop layout would get squeezed on a phone. They get it together with their mobile versions in Phase 4.
+
+The original task list for Phase 0:
+
 
 - Fix the web manifest: give it a name, icons, `start_url` set to `/gemp-lotr/hall.html`, a theme color, and `display: standalone`.
 - Add a small **service worker** that caches only the app's own static files (scripts, styles, icons). It must never cache game or server API calls, so live games always come from the server.
