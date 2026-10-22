@@ -174,7 +174,37 @@ The original task list for Phase 0:
 - Add `<meta name="viewport">` to the mobile page and to the pages a mobile user visits (login, hall).
 - **Result:** "Add to home screen" on Android installs Gemp as an app that opens the hall.
 
-### Phase 1 – Mobile game screen, read-only
+### Phase 1 – Mobile game screen, read-only ✅ done
+
+What was built (all in `gemp-lotr-async/src/main/web/`):
+
+- `game-mobile.html`: the mobile game page, for a live game (`?gameId=`) or a replay (`?replayId=`).
+- `src/GameMobile/state.js`: the game state model. It handles every event the server sends (cards in play, moves, attachments and stacking, tokens, assignments including split skirmishes, skirmishes, stats, piles, threats, decisions, messages and clocks). It's plain JavaScript and is tested in Node (`mobile-client/dev/test-state.js`).
+- `src/GameMobile/render.js`: draws the state.
+  - Status bar: phase, twilight, initiative, moves, archery, rule of 4, and the players with clocks, hand, deck and threats.
+  - Adventure path strip with the player markers. It scrolls to where the players are.
+  - Rows of cards that scroll sideways. Each card shows its strength, vitality and resistance (or site number) and its tokens. Attached and stacked cards are drawn small **under** their card, with a "+N" badge.
+  - Skirmish shown as "your side vs. minions" with the strength totals, damage bonus and overwhelmed. Assignments shown as pairs; a split skirmish's waiting minions face a faded copy of the character.
+  - Tapping a card opens it full size, with its stats, tokens, the cards attached and stacked, and (live) its modifiers. Tapping a player shows their piles and the cards known in them. Tapping a card name in the log shows that card.
+  - The hand in a bottom sheet on phones and always visible on tablets. The game log in a sheet, or on the right on landscape tablets.
+  - Event cards being played and cards being used are shown briefly, like the desktop animations.
+- `src/GameMobile/gameMobile.js`: connects to the server with the desktop client's calls (live game with polling, or replay with play/pause, step and speed).
+- `src/GameMobile/index.css`: the layouts.
+  - Phone portrait: everything stacked; the page scrolls up and down only, and each row scrolls sideways.
+  - Phone landscape: smaller cards, a one-line status bar, and the opponent's side on the left with the skirmish and your side on the right.
+  - Tablet: bigger cards and the hand under the table. In landscape, the same two halves as on the phone, plus the game log on the right.
+
+Read-only for now: when it's your decision, the bottom bar shows it with a link to answer in the standard view.
+
+Checked on the local server (screenshots in an emulated Pixel 7 and Galaxy Tab S4, portrait and landscape):
+
+- A replay at the start, during assignments, during skirmishes and at the end. No script errors, and the page never scrolls sideways.
+- Spectating a live game (followed to the end), and a player's own pending decision.
+
+Development tools: `mobile-client/dev/` (see its README). `autoplay.js` plays whole games between the test users, and a recorded game is kept in `fixtures/` for the state tests.
+
+The original task list for Phase 1:
+
 
 - Create `game-mobile.html`, `src/GameMobile/` and the game state model with its event processor (all ~25 event types).
 - Build the renderer: status bar, adventure path strip, zone rows, skirmish and assignment pairs, token and attachment badges, and the long-press card view.

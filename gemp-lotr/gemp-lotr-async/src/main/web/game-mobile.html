@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>GEMP: LotR-TCG - Game Table</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16x16.png">
+    <link rel="manifest" href="images/icons/site.webmanifest">
+    <meta name="theme-color" content="#1a1a1a">
+    <script type="text/javascript" src="js/gemp-022/pwa.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="src/GameMobile/index.css">
+
+    <!-- Shared with the desktop client: server calls and card images -->
+    <script type="text/javascript" src="js/jquery/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="js/gemp-022/inheritance.js"></script>
+    <script type="text/javascript" src="js/gemp-022/common.js"></script>
+    <script type="text/javascript" src="js/gemp-022/logging.js"></script>
+    <script type="text/javascript" src="js/gemp-022/communication.js"></script>
+    <script type="text/javascript" src="js/gemp-022/cards/CardImages.js"></script>
+    <script type="text/javascript" src="js/gemp-022/cards/PackImages.js"></script>
+    <script type="text/javascript" src="js/gemp-022/hobbit.js"></script>
+    <script type="text/javascript" src="js/gemp-022/set40.js"></script>
+    <script type="text/javascript" src="js/gemp-022/PC_Cards.js"></script>
+    <script type="text/javascript" src="js/gemp-022/cards/Card.js"></script>
+
+    <!-- The mobile game screen -->
+    <script type="text/javascript" src="src/GameMobile/state.js"></script>
+    <script type="text/javascript" src="src/GameMobile/render.js"></script>
+    <script type="text/javascript" src="src/GameMobile/gameMobile.js"></script>
+</head>
+<body>
+    <div id="mg-app">
+        <header id="mg-top"></header>
+        <main id="mg-table">
+            <section id="mg-sites" class="mg-sites"></section>
+            <div id="mg-zones"></div>
+        </main>
+        <aside id="mg-side"></aside>
+        <section id="mg-hand-dock" class="mg-hand-dock"></section>
+        <footer id="mg-bottom"></footer>
+    </div>
+    <div id="mg-effect" class="mg-effect" aria-live="polite"></div>
+    <div id="mg-sheet" class="mg-sheet" hidden>
+        <div class="mg-sheet-backdrop"></div>
+        <div class="mg-sheet-panel" role="dialog" aria-modal="true">
+            <div class="mg-sheet-head">
+                <h2 class="mg-sheet-title"></h2>
+                <button class="mg-sheet-close" type="button" aria-label="Close">✕</button>
+            </div>
+            <div class="mg-sheet-body"></div>
+        </div>
+    </div>
+</body>
+</html>
