@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <title>GEMP: LotR-TCG - Game Hall</title>
+
+    <link rel="apple-touch-icon" sizes="180x180" href="images/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/icons/favicon-16x16.png">
+    <link rel="manifest" href="images/icons/site.webmanifest">
+    <meta name="theme-color" content="#1a1a1a">
+    <script type="text/javascript" src="js/gemp-022/pwa.js"></script>
+    <script type="text/javascript" src="js/gemp-022/mobileView.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="src/GameMobile/index.css">
+    <link rel="stylesheet" type="text/css" href="src/HallMobile/index.css">
+
+    <!-- Shared with the desktop client: server calls -->
+    <script type="text/javascript" src="js/jquery/jquery-1.6.2.js"></script>
+    <script type="text/javascript" src="js/gemp-022/inheritance.js"></script>
+    <script type="text/javascript" src="js/gemp-022/common.js"></script>
+    <script type="text/javascript" src="js/gemp-022/logging.js"></script>
+    <script type="text/javascript" src="js/gemp-022/communication.js"></script>
+
+    <!-- The mobile hall (its chat is the mobile game screen's) -->
+    <script type="text/javascript" src="src/GameMobile/chat.js"></script>
+    <script type="text/javascript" src="src/HallMobile/hallState.js"></script>
+    <script type="text/javascript" src="src/HallMobile/hallMobile.js"></script>
+</head>
+<body>
+    <div id="mh-app">
+        <header id="mh-top">
+            <div class="mh-brand">GEMP</div>
+            <div id="mh-connection" class="mh-connection" title="Connection to the server"></div>
+            <button type="button" class="mg-icon-button" data-action="menu" aria-label="Menu">☰</button>
+        </header>
+        <main id="mh-main"></main>
+        <nav id="mh-nav" class="mh-nav">
+            <button type="button" data-tab="hall"><span class="mh-nav-icon">⚔</span>Hall</button>
+            <button type="button" data-tab="play"><span class="mh-nav-icon">＋</span>Play</button>
+            <button type="button" data-tab="chat"><span class="mh-nav-icon">💬</span>Chat<span class="mh-badge" hidden></span></button>
+            <button type="button" data-tab="more"><span class="mh-nav-icon">⋯</span>More</button>
+        </nav>
+    </div>
+    <div id="mg-sheet" class="mg-sheet" hidden>
+        <div class="mg-sheet-backdrop"></div>
+        <div class="mg-sheet-panel" role="dialog" aria-modal="true">
+            <div class="mg-sheet-head">
+                <h2 class="mg-sheet-title"></h2>
+                <button class="mg-sheet-close" type="button" aria-label="Close">✕</button>
+            </div>
+            <div class="mg-sheet-body"></div>
+        </div>
+    </div>
+</body>
+</html>

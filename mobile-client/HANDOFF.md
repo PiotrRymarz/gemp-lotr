@@ -3,7 +3,7 @@
 Notes for the next session. When Piotr types "continue", **read this file first**, then
 [PLAN.md](PLAN.md) and [REMARKS.md](REMARKS.md), and carry on from "Next step" below.
 
-Last updated: end of the session that finished Phase 3 (2026-10-23).
+Last updated: end of the session that finished Phase 4 (2026-10-23).
 
 ## Context in one paragraph
 
@@ -29,27 +29,31 @@ push after each meaningful step (he relies on GitHub to keep the work).
 - ✅ **Phase 1**: read-only mobile game screen `game-mobile.html` (state model, renderer, live and replay). Details in PLAN.md.
 - ✅ **Phase 2**: playing from the phone. All 7 decision types (`decisions.js`), tap to select, long press for details. Tested with whole games played through the mobile page (`dev/mobile-player.js`).
 - ✅ **Phase 3**: the rest of the game screen. Chat, menu (concede, cancel), settings (shared with the desktop through cookies), clocks counting down, your-move signals, game-over screen, reconnecting. Details in PLAN.md.
-- ⏭ **Phase 4**: getting into games from a phone (mobile game hall, automatic switch). **This is the next step.**
-- Phase 5: see PLAN.md.
+- ✅ **Phase 4**: getting into games from a phone. Automatic switch to the mobile pages (`mobileView.js`), mobile game hall (`hall-mobile.html`), phone-friendly login. Details in PLAN.md.
+- ⏭ **Next:** trying it on a real phone (it needs a server with HTTPS; see PLAN.md section 7), then Phase 5 (polish, tablet extras, deck builder, Play Store). **Ask Piotr which he wants first.**
 
 ## Things to tell Piotr about (found along the way, not changed)
 
 - **The desktop auto-pass setting has no effect.** `gameUi.js` saves the `autoPassPhases` cookie without a path, so it only exists for `/gemp-lotr` and the browser never sends it to the server (`/gemp-lotr-server`). The server then always uses its default phases. Checked in a real browser. The fix would be to save it with `path: "/"` in `gameUi.js`. That changes behaviour for all desktop players, so it's his decision (the mobile page already saves it for `/`).
 - **Chat on the local server** loses many messages while a game page is open, on the desktop page too. Check on the real server.
 
-## Next step: Phase 4, getting into games from a phone
+## Next step
 
-From PLAN.md (Phase 4 and section 3, "Proposed mobile game hall"), and Piotr's decision: phones and tablets switch to the mobile screens **automatically**, with a way back to the standard view.
+The four main phases are done. Before more features, the most useful step is **testing on real devices**:
 
-- **Automatic switch:** decide "mobile device" with a touch screen and either side under ~1000 px (or `matchMedia("(pointer: coarse)")`). Remember an explicit choice ("Standard view" / "Mobile view") on the device (cookie or localStorage). Game links in the hall (`hallUi.js`: around line 1105 `openOrOffer(... "/gemp-lotr/game.html?gameId=" ...)` and line 1655) should open `game-mobile.html` on mobile. A small script in `game.html` could also send phones to the mobile page unless they chose the standard view. Don't change anything for desktop users.
-- **Mobile game hall** (`hall-mobile.html` or similar), following the sketch in PLAN.md section 3:
-  - your game pinned on top with Play Match
-  - tables as cards (format, players, status, one big button)
-  - a bottom navigation bar: Hall, Play, Decks, Chat, More
-  - the ☰ menu with Help, Events, Server Info, My Account, the links and "Standard view"
-  The hall's server calls are in `communication.js` (`getHall`, `updateHall`, `joinTable`, `createTable`, `leaveTable`…), and `hallUi.js` shows how the desktop uses them. The hall's own chat is the "Game Hall" room (or Discord; see `chat.js`).
-- **Login page** (`index.html`): make it usable on a phone (viewport tag and a simple layout), or give the mobile hall its own login.
-- Test with Playwright at phone and tablet sizes, plus a whole flow: log in, create a table, have qwer join (HTTP, like `autoplay.js`), the game opens on the mobile page, play, back to the hall.
+- Real card images (blocked in the cloud sandbox), real touch, real Android browsers, and installing the PWA.
+- It needs a server reachable over HTTPS. PLAN.md section 7 has the options: Cloudflare Tunnel from Piotr's own computer (free), or a small cloud server. Piotr has no server yet; offer step-by-step help.
+- Also check on the real server whether game chat delivers messages reliably (see "Things to tell Piotr about").
+
+Then Phase 5, from PLAN.md:
+- tablet and landscape extras
+- drag and drop
+- swiping between zones
+- preloading card images
+- the deck builder on mobile
+- a Play Store listing (Trusted Web Activity: needs `/.well-known/assetlinks.json`, which `WebRequestHandler` currently refuses because of the dot)
+
+Ask Piotr what matters most to him.
 
 ## Setting up a new session (the container starts empty)
 
@@ -64,7 +68,7 @@ From PLAN.md (Phase 4 and section 3, "Proposed mobile game hall"), and Piotr's d
 2. **Start the local server.** `mobile-client/dev/start-local-server.sh` starts dockerd and MariaDB, bind-mounts the folders, builds with Maven (a few minutes the first time; run it in the background with a long timeout) and starts the server on port 80.
 3. **Create the test decks:** `cd mobile-client/dev && node setup-decks.js`.
 4. **Make a game:** `node autoplay.js` prints the replay ids, such as `asdf$...`.
-5. **Run the tests:** `node test-state.js` (11 should pass) and `node test-decisions.js` (16). For screenshots, use `screenshots.js`; for a whole game through the mobile page, use `mobile-player.js`; for chat, settings, clocks, reconnecting and conceding, use `mobile-features.js` (see `dev/README.md`).
+5. **Run the tests:** `node test-state.js` (11 should pass), `node test-decisions.js` (16) and `node test-hall.js` (7). For screenshots, use `screenshots.js`; for a whole game through the mobile page, use `mobile-player.js`; for chat, settings, clocks, reconnecting and conceding, use `mobile-features.js`; for the hall and the way into games, use `mobile-hall.js` (see `dev/README.md`).
 
 ## Gotchas learned the hard way
 
@@ -79,4 +83,6 @@ From PLAN.md (Phase 4 and section 3, "Proposed mobile game hall"), and Piotr's d
 - **Test users:** `asdf`/`asdf`, `qwer`/`qwer`, and `Librarian`/`qwer` (good for spectating).
 - **Every decision has id "1".** Don't use the id to tell decisions apart; use the type and text, or the fact that the previous one was sent.
 - **In Playwright, tap visible copies of a card** (`.mg-card[data-card-id="…"]:visible`). The tablet hand area exists but is hidden on phones, and `.first()` follows page order.
+- **The server lists running games as `newGame` in every full hall snapshot.** The mobile hall opens a game automatically only from an update, so a player who leaves a game for the hall isn't pulled straight back.
+- **Testing the automatic switch:** Playwright's phone devices (`devices["Pixel 7"]`) match `(pointer: coarse)`, so they're redirected; a plain `{viewport}` context is a computer.
 - **Answering decisions on the desktop:** the formats are in the `*Decision` functions in `gameUi.js`, and `decisions.js` follows them.

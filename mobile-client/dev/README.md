@@ -12,6 +12,8 @@ Tools for building and testing the mobile client against a local server. None of
 | `setup-decks.js` | Saves the two decks `autoplay.js` needs. Run it once on a fresh database. |
 | `screenshots.js` | Opens a replay on the mobile screen at phone and tablet sizes (portrait and landscape) and takes screenshots at key moments. It also reports script errors and sideways page overflow. |
 | `mobile-features.js` | Checks, in a live game against `autoplay.js --players qwer`: the your-move title, the clocks counting down, chat both ways with the unread badge, the auto-pass cookie reaching the server, reconnecting after the network drops, and conceding up to the game-over screen. Lost chat messages are reported as warnings (a known local-server issue). |
+| `test-hall.js` | Tests for the mobile game hall's state (`src/HallMobile/hallState.js`). |
+| `mobile-hall.js` | The way into games on a phone, end to end: login, landing in the mobile hall, create a table and have qwer join, concede, join qwer's table, a bot game, chat, switching to the standard view and back, other screen sizes, and a computer not being redirected. Plays qwer over HTTP itself, so it needs no `autoplay.js`. |
 | `xml.js` | Minimal XML reader shared by the scripts. |
 | `fixtures/` | One recorded game: everything the server sent player `asdf` live (`game1-asdf/`), and the same game's replay. |
 
@@ -33,6 +35,8 @@ node autoplay.js --players qwer                  # play only qwer; open the game
 node autoplay.js --out /tmp/game                 # save every server response
 node test-state.js                               # run the state model tests
 node test-decisions.js                           # run the decision tests
+node test-hall.js                                # run the hall tests
+NODE_PATH=/opt/node-tools/node_modules node mobile-hall.js [--shots DIR]   # login, hall and the way into games
 node autoplay.js --players qwer &                # then play asdf through the mobile page:
 NODE_PATH=/opt/node-tools/node_modules node mobile-player.js <gameId> ["Pixel 7 landscape"] [--shots DIR]
 NODE_PATH=/opt/node-tools/node_modules node mobile-features.js <gameId> [--shots DIR]   # also with autoplay --players qwer

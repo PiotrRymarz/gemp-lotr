@@ -105,3 +105,63 @@ a {
 a:visited {
     color: #A63F03;
 }
+
+/* Phones (and narrow windows): a smaller banner, the page can scroll, and big enough fields and buttons to tap.
+   Computers with a normal window don't match this, so their login page is unchanged. */
+@media (max-width: 700px) {
+    body {
+        overflow-y: auto;
+    }
+
+    .centerContainer {
+        margin-top: 24px;
+        height: auto;
+    }
+
+    .banner {
+        width: auto;
+        font-size: 30px;
+        padding: 12px 16px;
+    }
+
+    .login {
+        margin: 10px 16px;
+        padding: 12px;
+        font-size: 17px;
+        background-color: #222222CC;
+        border-radius: 8px;
+    }
+
+    .interaction {
+        width: 100%;
+        line-height: 1.6;
+    }
+
+    .interaction input {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 44px;
+        margin: 2px 0 8px;
+        padding: 0 10px;
+        font-size: 16px;
+    }
+
+    .interaction .ui-button {
+        min-height: 44px;
+        margin: 4px 0;
+    }
+
+    .interaction .ui-button-text-only .ui-button-text {
+        font-size: 17px;
+        padding: 10px 18px;
+    }
+
+    .info {
+        box-sizing: border-box;
+        width: 100%;
+        margin-left: 0;
+        margin-bottom: 24px;
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}

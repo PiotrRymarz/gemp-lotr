@@ -1016,17 +1016,26 @@ var MobileRenderer = (function () {
                     items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "pregame", text: "Game info"}));
                 if (that.options.settings && that.options.mode == "live")
                     items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "settings", text: "Settings"}));
-                if (that.options.mode == "live" && that.state.initialized && !that.state.spectator && !that.state.ended) {
+                // Players can leave from the start, as on the desktop (before the game starts, the pre-game summary
+                // says who the players are)
+                var s = that.state;
+                var isPlayer = s.initialized ? !s.spectator
+                    : !!(s.pregame && s.pregame.allPlayerIds.indexOf(s.pregame.participantId) >= 0);
+                if (that.options.mode == "live" && isPlayer && !s.ended) {
                     items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "cancel-request", text: "Request game cancel"}));
                     items.appendChild(h("button", {type: "button", class: "mg-button mg-danger", "data-action": "concede", text: "Concede game"}));
                 }
-                items.appendChild(h("a", {class: "mg-button", href: that.options.standardViewUrl, text: "Switch to standard view"}));
                 items.appendChild(h("a", {class: "mg-button", href: "hall.html", text: "Back to the game hall"}));
+                items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "standard-view", text: "Switch to the standard view"}));
                 body.appendChild(items);
             }, false);
         },
         pregame: function () {
             this.showPregame();
+        },
+        "standard-view": function () {
+            // Remembered on this device; the standard pages have a "Mobile view" button to come back
+            GempView.switchTo("standard", "game.html" + window.location.search);
         },
         chat: function () {
             this.showChat();

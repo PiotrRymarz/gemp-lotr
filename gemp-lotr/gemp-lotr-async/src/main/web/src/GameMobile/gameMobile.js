@@ -29,7 +29,8 @@ var MobileGame = (function () {
         this.endShown = false;
 
         var that = this;
-        var standardViewUrl = "game.html" + window.location.search;
+        // The standard game page, just this once (the menu's "Switch to standard view" remembers the choice)
+        var standardViewUrl = "game.html" + window.location.search + (window.location.search ? "&" : "?") + "view=standard";
         this.comm = new GempLotrCommunication("/gemp-lotr-server", function (xhr) {
             that.connectionLost(xhr);
         });

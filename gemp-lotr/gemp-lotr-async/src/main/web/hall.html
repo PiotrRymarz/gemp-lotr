@@ -8,6 +8,9 @@
 	<link rel="manifest" href="images/icons/site.webmanifest">
 	<meta name="theme-color" content="#1a1a1a">
 	<script type="text/javascript" src="js/gemp-022/pwa.js"></script>
+	<!-- Phones and tablets: the mobile version of this page, unless the player chose the standard view -->
+	<script type="text/javascript" src="js/gemp-022/mobileView.js"></script>
+	<script type="text/javascript">if (!GempView.redirectToMobile("hall-mobile.html")) GempView.offerMobileSwitch("hall-mobile.html");</script>
 	
 	<meta property="og:title" content="GEMP: Play the LotR-TCG" />
 	<meta property="og:description" content="Play the Lord of the Rings TCG for free in your browser using GEMP.  No limits, no clean-up, and no budget.  Build your deck and play today!" />

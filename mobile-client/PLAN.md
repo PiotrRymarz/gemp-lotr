@@ -275,7 +275,45 @@ The original task list for Phase 3:
 - Timers and the decision clock, the "your turn" sound and vibration, and the end-of-game screen.
 - Reconnecting after the phone sleeps or the network drops. On mobile this matters more than on desktop.
 
-### Phase 4 – Getting into games from a phone
+### Phase 4 – Getting into games from a phone ✅ done
+
+What was built:
+
+- **The automatic switch** (`js/gemp-022/mobileView.js`):
+  - **Which devices:** phones and tablets (a touch screen as the main input and no side over 1100 px) go from `hall.html` and `game.html` to `hall-mobile.html` and `game-mobile.html`, with the same address details. The check is the first thing in `<head>`, so they're redirected before the desktop scripts load. Computers are never redirected; this was checked.
+  - **Switching back:** "Switch to the standard view" in the mobile menus is remembered on the device (cookie `gempView`). On the standard pages, a phone or tablet then shows a small "📱 Mobile view" button to go back.
+  - **One-off visits:** `?view=standard` shows a standard page once without switching. The mobile hall's links to events, account, info and help use this.
+- **The mobile game hall** (`hall-mobile.html`, `src/HallMobile/`):
+  - **Hall tab:** "Your games" on top (a game in progress with Play, your waiting table with Leave), then the tables waiting for an opponent (Join), the games being played (Watch) and, folded away, the finished ones. Each table is a card showing its format, timer and note, players, status and how long it has been waiting, with one big button. The message of the day is at the top, and events and tournaments link to the standard hall.
+  - **Joining:** Join opens a sheet to pick a deck (your decks, then the Deck Library; decks for the table's format first).
+  - **Play tab:** create a table (format, deck, timer with its explanation, note, private), or practise against the bot (Fellowship Block). The last choices are remembered.
+  - **Chat tab:** the hall chat room ("Game Hall"), with an unread badge on the tab.
+  - **More tab:** deck builder, events, account, server info, help, the wiki, switch to the standard view, and log out.
+  - **Games open by themselves:** when one of your games starts (you joined a table, someone joined yours, or a bot game), it opens on the mobile game screen. A game already running when you open the hall doesn't pull you back in; it waits under "Your games".
+  - **Connection:** the hall follows updates like the desktop hall. If the connection drops it reconnects, if your session ended it goes back to the login page, and if the hall is open somewhere else it says so.
+  - **Layout:** one column on phones and centred on tablets, with tables two per row on wide screens.
+- **Login page** (`index.html`): a viewport tag and a layout for narrow screens (smaller banner, full-width fields, big buttons). Computers see the same page as before (checked).
+- **Concede from the start:** in the game screen's menu, Concede and Request cancel are now there from the start of the game (during the burden bid too), as on the desktop.
+
+Checked on the local server:
+
+- **Hall tests:** `dev/test-hall.js`, 7 tests of the hall state (snapshot and updates, your tables first, the action for each table, invitations, waiting time on the server's clock).
+- **The whole route on a phone:** `dev/mobile-hall.js`, 12 steps, all passing:
+  1. log in, and land in the mobile hall
+  2. create a table; qwer joins; the game opens on the mobile game screen
+  3. concede, and get back to the hall
+  4. join qwer's table; the game opens
+  5. practise against the bot; the game opens
+  6. the hall chat
+  7. switch to the standard view and back with the "Mobile view" button
+  8. the hall at phone-landscape, tablet and tablet-landscape sizes without sideways scrolling
+  9. a computer stays on the standard pages
+- **Desktop:** the login, hall and game pages still load without script errors.
+
+Not done (Phase 5, or the standard pages for now): events, tournaments, leagues, drafts, the deck builder and account pages are still the desktop versions, reachable from More. Invite-only tables can be joined when you're invited, but not created on mobile.
+
+The original task list for Phase 4:
+
 
 - When the hall is opened on a touch device or a small screen, its game links point to `game-mobile.html` instead of `game.html`. A "Desktop / Mobile view" switch is remembered on the device.
 - Make the login page and the hall (game list, creating and joining a table, choosing a deck) usable on a phone.
