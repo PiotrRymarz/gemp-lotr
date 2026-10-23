@@ -244,7 +244,32 @@ The original task list for Phase 2:
 - Auto-pass and auto-accept settings, taken from the existing settings.
 - **Result:** a full game can be played from a phone against a desktop player.
 
-### Phase 3 – The rest of the game screen
+### Phase 3 – The rest of the game screen ✅ done
+
+What was built:
+
+- **Chat** (`src/GameMobile/chat.js`): the game's chat room ("Game<id>", the same room as the desktop chat tab). It has a Chat button with an unread badge, and a chat sheet showing the messages, who is in the room, and a text field that keeps the keyboard open while messages arrive. Spectators can chat too. It uses its own connection, so a chat problem never stops the game.
+- **Menu:** Chat and players, Game info, Settings, Request game cancel and Concede game. The last two ask for confirmation. After either one, the page listens to the server even while a decision is waiting, so the end of the game arrives.
+- **Settings** (`src/GameMobile/settings.js`), remembered on the device:
+  - Auto-pass per phase, "send at once after choosing" (auto-accept) and skipping the look at your own deck. These use the **same cookies as the desktop**, so they're shared with the standard view.
+  - Sound, vibration and timer warnings (mobile only).
+  - Auto-accept is **off by default** on mobile, because a stray tap shouldn't play a card.
+- **Auto-pass reaches the server:** the server reads the `autoPassPhases` cookie, but the desktop saves it only for `/gemp-lotr`, so the browser never sends it to `/gemp-lotr-server`. In other words, **the desktop's auto-pass setting has no effect today** (checked in a real browser). The mobile page also saves it for `/`, so it works there. If no phase is selected, it sets the server's `autoPass=false` switch instead, because an empty list would make the server fail.
+- **Clocks:** your time bank and the decision clock (time taken / time allowed, shown next to the question) count down every second between server updates. They turn orange, then red, as time runs low. Warnings (sound and vibration, if switched on) come at 60, 30 and 10 seconds and every second below that for the decision, and regularly in the last minutes of the time bank.
+- **Your move:** the page title changes to "▶ Your move", the phone vibrates briefly, and a sound plays if the game is in the background.
+- **Game over:** a screen with "You won!" or "You lost", the reason, a link to the replay and the way back to the hall.
+- **Reconnecting:** if the network drops or the phone sleeps, a "Connection lost. Reconnecting…" banner appears and the page loads the game again. It tries 6 times over about 2 minutes, immediately when the page comes back to the foreground. A decision that was being sent is simply asked again. It also rejoins after the server's "inactive for too long" answer.
+
+Checked on the local server:
+
+- **Decision tests:** `dev/test-decisions.js` now has 16 tests (auto-accept added), and the state tests (11) still pass.
+- **Feature checks:** `dev/mobile-features.js` runs in a live game against the auto-player and passed several runs. It checks the your-move title; the clocks counting down; chat both ways with the unread badge; the auto-pass cookie actually sent to the server; the network dropping while an answer is sent, then recovering; and conceding, ending on the "You lost" screen with a replay link.
+- **Full games:** whole games still play through the mobile page on phone and tablet, and replays still show at all four sizes.
+
+**Known issue (also on the desktop):** on the local test server, chat messages are often lost while a game page is open. The **desktop game page loses them the same way**, while plain HTTP calls and pages without a game deliver them fine. So it's in the server or this local setup, not in the mobile page. It needs checking on the real server, where people use the desktop chat every day.
+
+The original task list for Phase 3:
+
 
 - Chat (as a tab or sheet), the players list, game options (concede and request cancel), and settings.
 - Timers and the decision clock, the "your turn" sound and vibration, and the end-of-game screen.

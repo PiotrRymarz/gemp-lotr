@@ -3,7 +3,7 @@
 Notes for the next session. When Piotr types "continue", **read this file first**, then
 [PLAN.md](PLAN.md) and [REMARKS.md](REMARKS.md), and carry on from "Next step" below.
 
-Last updated: end of the session that finished Phase 2 (2026-10-23).
+Last updated: end of the session that finished Phase 3 (2026-10-23).
 
 ## Context in one paragraph
 
@@ -28,22 +28,28 @@ push after each meaningful step (he relies on GitHub to keep the work).
 - ✅ **Phase 0**: PWA shell. Manifest, service worker `sw.js` (network-first, own static files only), offline page, content types on the server.
 - ✅ **Phase 1**: read-only mobile game screen `game-mobile.html` (state model, renderer, live and replay). Details in PLAN.md.
 - ✅ **Phase 2**: playing from the phone. All 7 decision types (`decisions.js`), tap to select, long press for details. Tested with whole games played through the mobile page (`dev/mobile-player.js`).
-- ⏭ **Phase 3**: the rest of the game screen. **This is the next step.**
-- Phases 4–5: see PLAN.md.
+- ✅ **Phase 3**: the rest of the game screen. Chat, menu (concede, cancel), settings (shared with the desktop through cookies), clocks counting down, your-move signals, game-over screen, reconnecting. Details in PLAN.md.
+- ⏭ **Phase 4**: getting into games from a phone (mobile game hall, automatic switch). **This is the next step.**
+- Phase 5: see PLAN.md.
 
-## Next step: Phase 3, the rest of the game screen
+## Things to tell Piotr about (found along the way, not changed)
 
-From PLAN.md, Phase 3, plus what Phase 2 left out:
+- **The desktop auto-pass setting has no effect.** `gameUi.js` saves the `autoPassPhases` cookie without a path, so it only exists for `/gemp-lotr` and the browser never sends it to the server (`/gemp-lotr-server`). The server then always uses its default phases. Checked in a real browser. The fix would be to save it with `path: "/"` in `gameUi.js`. That changes behaviour for all desktop players, so it's his decision (the mobile page already saves it for `/`).
+- **Chat on the local server** loses many messages while a game page is open, on the desktop page too. Check on the real server.
 
-- **Chat:** the desktop client uses `js/gemp-022/chat.js` (`ChatBoxUI`, `beginGameChat`). Reuse its server calls in a Chat sheet or tab, together with the players in the room.
-- **Game options:** concede (`comm.concede`) and request a cancel (`comm.cancel`), both behind a confirmation. Put them in the ☰ menu.
-- **Settings**, remembered on the device: auto-pass phases, auto-accept after selecting, always use a list for multiple choice, auto-dismiss your own deck reveal, animation speed. The desktop versions are in `game.html` (`#settingsBox`) and how they're applied is in `gameUi.js`. Apply auto-pass in `gameMobile.updateDecision` (answer `""` for `CARD_ACTION_CHOICE` with no cards in phases the player chose) and auto-accept in `decisions.js`.
-- **Timers:** count the clocks down locally between server updates (desktop: `startTimerTick`, `renderDecisionClock` in `gameUi.js`). Show the decision clock (`decisionClock` / `decisionLimit`) while it's your decision, and warn when time runs low.
-- **Your turn:** a sound (the desktop uses `/gemp-lotr/src/assets/awaiting_decision.mp3`) and/or a short vibration (`navigator.vibrate`) when a decision arrives, and the page title changes like the desktop's `startAnimatingTitle`.
-- **End of game:** a clear result screen (who won and why: it's in the last messages), with links to the hall and the replay.
-- **Reconnecting:** after the phone sleeps or the network drops, retry `updateGameState` a few times before showing the error. The server answers 410 after long inactivity; then reload the game.
+## Next step: Phase 4, getting into games from a phone
 
-Test the same way as Phase 2: `autoplay.js --players qwer` plus `mobile-player.js`, and Node tests for any new logic.
+From PLAN.md (Phase 4 and section 3, "Proposed mobile game hall"), and Piotr's decision: phones and tablets switch to the mobile screens **automatically**, with a way back to the standard view.
+
+- **Automatic switch:** decide "mobile device" with a touch screen and either side under ~1000 px (or `matchMedia("(pointer: coarse)")`). Remember an explicit choice ("Standard view" / "Mobile view") on the device (cookie or localStorage). Game links in the hall (`hallUi.js`: around line 1105 `openOrOffer(... "/gemp-lotr/game.html?gameId=" ...)` and line 1655) should open `game-mobile.html` on mobile. A small script in `game.html` could also send phones to the mobile page unless they chose the standard view. Don't change anything for desktop users.
+- **Mobile game hall** (`hall-mobile.html` or similar), following the sketch in PLAN.md section 3:
+  - your game pinned on top with Play Match
+  - tables as cards (format, players, status, one big button)
+  - a bottom navigation bar: Hall, Play, Decks, Chat, More
+  - the ☰ menu with Help, Events, Server Info, My Account, the links and "Standard view"
+  The hall's server calls are in `communication.js` (`getHall`, `updateHall`, `joinTable`, `createTable`, `leaveTable`…), and `hallUi.js` shows how the desktop uses them. The hall's own chat is the "Game Hall" room (or Discord; see `chat.js`).
+- **Login page** (`index.html`): make it usable on a phone (viewport tag and a simple layout), or give the mobile hall its own login.
+- Test with Playwright at phone and tablet sizes, plus a whole flow: log in, create a table, have qwer join (HTTP, like `autoplay.js`), the game opens on the mobile page, play, back to the hall.
 
 ## Setting up a new session (the container starts empty)
 
@@ -58,7 +64,7 @@ Test the same way as Phase 2: `autoplay.js --players qwer` plus `mobile-player.j
 2. **Start the local server.** `mobile-client/dev/start-local-server.sh` starts dockerd and MariaDB, bind-mounts the folders, builds with Maven (a few minutes the first time; run it in the background with a long timeout) and starts the server on port 80.
 3. **Create the test decks:** `cd mobile-client/dev && node setup-decks.js`.
 4. **Make a game:** `node autoplay.js` prints the replay ids, such as `asdf$...`.
-5. **Run the tests:** `node test-state.js` (11 should pass) and `node test-decisions.js` (15). For screenshots, use `screenshots.js`; for a whole game through the mobile page, use `mobile-player.js` (see `dev/README.md`).
+5. **Run the tests:** `node test-state.js` (11 should pass) and `node test-decisions.js` (16). For screenshots, use `screenshots.js`; for a whole game through the mobile page, use `mobile-player.js`; for chat, settings, clocks, reconnecting and conceding, use `mobile-features.js` (see `dev/README.md`).
 
 ## Gotchas learned the hard way
 

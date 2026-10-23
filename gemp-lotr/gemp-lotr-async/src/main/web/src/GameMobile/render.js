@@ -286,6 +286,7 @@ var MobileRenderer = (function () {
         }
         this.showEffect();
         this.sheet.refresh();
+        this.refreshChat(false);
         this.revealSelectableCards();
     };
 
@@ -367,13 +368,51 @@ var MobileRenderer = (function () {
         }, [
             h("span", {class: "mg-player-no mg-p" + (index + 1), text: "" + (index + 1)}),
             h("span", {class: "mg-player-name", text: playerId}),
-            s.clocks[playerId] != null ? h("span", {class: "mg-clock", text: formatTime(s.clocks[playerId])}) : null,
+            s.clocks[playerId] != null ? h("span", {class: "mg-clock" + this.clockClass(playerId), "data-clock": playerId, text: formatTime(s.clocks[playerId])}) : null,
             h("span", {class: "mg-counts"}, [
                 counter("Hand", "✋", p.hand),
                 counter("Draw deck", "🂠", p.deck),
                 p.threats != null ? counter("Threats", "⚠", p.threats + (p.threatTotal != null ? "/" + p.threatTotal : "")) : null
             ])
         ]);
+    };
+
+    // Your own time bank turns orange under 10 minutes and red under 5 (as on the desktop)
+    Renderer.prototype.clockClass = function (playerId) {
+        var s = this.state;
+        var value = s.clocks[playerId];
+        if (s.spectator || playerId != s.bottomPlayerId || value == null || this.options.mode == "replay")
+            return "";
+        if (value <= 0)
+            return " mg-time-out";
+        return value < 300 ? " mg-time-danger" : (value < 600 ? " mg-time-warn" : "");
+    };
+
+    // The decision clock: time taken / time allowed, orange when a quarter (or a minute) is left, red under 30 s
+    Renderer.prototype.decisionClockElement = function () {
+        var s = this.state;
+        if (s.decisionClock == null)
+            return null;
+        var text = "⏱ " + formatTime(s.decisionClock) + (s.decisionLimit > 0 ? " / " + formatTime(s.decisionLimit) : "");
+        var remaining = s.decisionLimit > 0 ? s.decisionLimit - s.decisionClock : null;
+        var level = remaining == null ? "" : (remaining <= 0 ? " mg-time-out" : remaining < 30 ? " mg-time-danger"
+            : (remaining < 60 || remaining < s.decisionLimit / 4) ? " mg-time-warn" : "");
+        return h("span", {class: "mg-decision-clock" + level, title: "Time for this decision", text: text});
+    };
+
+    // Called every second by the controller: only the clocks change, so only they are redrawn
+    Renderer.prototype.updateClocks = function () {
+        var s = this.state;
+        var clocks = this.top.querySelectorAll("[data-clock]");
+        for (var i = 0; i < clocks.length; i++) {
+            var playerId = clocks[i].getAttribute("data-clock");
+            clocks[i].textContent = formatTime(s.clocks[playerId]);
+            clocks[i].className = "mg-clock" + this.clockClass(playerId);
+        }
+        var old = this.bottom.querySelector(".mg-decision-clock");
+        var fresh = this.decisionClockElement();
+        if (old && fresh)
+            old.parentNode.replaceChild(fresh, old);
     };
 
     function counter(title, icon, value) {
@@ -612,6 +651,14 @@ var MobileRenderer = (function () {
         if (hand != null)
             buttons.appendChild(h("button", {type: "button", class: "mg-button mg-hand-button", "data-action": "hand"}, ["Hand ", h("b", {text: "" + hand.length})]));
         buttons.appendChild(h("button", {type: "button", class: "mg-button mg-log-button", "data-action": "log", text: "Log"}));
+        var chat = this.options.chat;
+        if (chat)
+            buttons.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "chat"}, [
+                "Chat", chat.unread > 0 ? h("span", {class: "mg-unread", text: "" + chat.unread}) : null
+            ]));
+        // Reconnecting and similar notices, above everything else
+        if (this.status && this.status.kind == "info")
+            this.bottom.appendChild(h("div", {class: "mg-banner", text: this.status.text}));
         if (this.replay)
             buttons.appendChild(this.replayControls());
 
@@ -627,7 +674,10 @@ var MobileRenderer = (function () {
     Renderer.prototype.decisionPanel = function (buttons) {
         var d = this.decision;
         var panel = h("div", {class: "mg-decision mg-mine"}, [
-            h("div", {class: "mg-decision-text", html: linkCardHints(d.text)}),
+            h("div", {class: "mg-decision-head"}, [
+                h("div", {class: "mg-decision-text", html: linkCardHints(d.text)}),
+                this.decisionClockElement()
+            ]),
             d.note ? h("div", {class: "mg-note", html: linkCardHints(d.note)}) : null
         ]);
 
@@ -960,8 +1010,16 @@ var MobileRenderer = (function () {
             var that = this;
             this.sheet.open("Menu", function (body) {
                 var items = h("div", {class: "mg-menu"});
+                if (that.options.chat)
+                    items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "chat", text: "Chat and players"}));
                 if (that.state.pregame)
                     items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "pregame", text: "Game info"}));
+                if (that.options.settings && that.options.mode == "live")
+                    items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "settings", text: "Settings"}));
+                if (that.options.mode == "live" && that.state.initialized && !that.state.spectator && !that.state.ended) {
+                    items.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "cancel-request", text: "Request game cancel"}));
+                    items.appendChild(h("button", {type: "button", class: "mg-button mg-danger", "data-action": "concede", text: "Concede game"}));
+                }
                 items.appendChild(h("a", {class: "mg-button", href: that.options.standardViewUrl, text: "Switch to standard view"}));
                 items.appendChild(h("a", {class: "mg-button", href: "hall.html", text: "Back to the game hall"}));
                 body.appendChild(items);
@@ -969,6 +1027,37 @@ var MobileRenderer = (function () {
         },
         pregame: function () {
             this.showPregame();
+        },
+        chat: function () {
+            this.showChat();
+        },
+        settings: function () {
+            this.showSettings();
+        },
+        concede: function () {
+            var that = this;
+            this.confirm("Concede game?", "You lose this game. If you have to leave, conceding lets your opponent move on.",
+                "Concede", function () {
+                    that.options.onConcede();
+                });
+        },
+        "cancel-request": function () {
+            var that = this;
+            this.confirm("Request game cancel?", "The game is cancelled, with no winner, if your opponent requests it too.",
+                "Request cancel", function () {
+                    that.options.onCancelRequest();
+                });
+        },
+        "confirm-yes": function () {
+            var action = this.pendingConfirm;
+            this.pendingConfirm = null;
+            this.sheet.close();
+            if (action)
+                action();
+        },
+        "confirm-no": function () {
+            this.pendingConfirm = null;
+            this.sheet.close();
         },
         "replay-toggle": function () {
             this.options.onReplay && this.options.onReplay("toggle");
@@ -979,6 +1068,151 @@ var MobileRenderer = (function () {
         "replay-speed": function () {
             this.options.onReplay && this.options.onReplay("speed");
         }
+    };
+
+    Renderer.prototype.confirm = function (title, text, yesLabel, action) {
+        this.pendingConfirm = action;
+        this.sheet.open(title, function (body) {
+            append(body, [
+                h("p", {text: text}),
+                h("div", {class: "mg-controls"}, [
+                    h("button", {type: "button", class: "mg-button", "data-action": "confirm-no", text: "Back"}),
+                    h("button", {type: "button", class: "mg-button mg-danger", "data-action": "confirm-yes", text: yesLabel})
+                ])
+            ]);
+        }, false);
+    };
+
+    // The game's chat room, and who is in it. Only the message list is redrawn when messages arrive, so the text
+    // field keeps its focus (and the phone its keyboard) while typing.
+    Renderer.prototype.showChat = function () {
+        var chat = this.options.chat;
+        if (!chat)
+            return;
+        var that = this;
+        chat.open = true;
+        chat.markRead();
+        this.sheet.open("Chat", function (body) {
+            that.chatUsersEl = h("div", {class: "mg-note mg-chat-users"});
+            that.chatLogEl = h("div", {class: "mg-chat-log"});
+            var input = h("input", {type: "text", class: "mg-chat-input", placeholder: chat.broken ? "Chat is off" : "Message…",
+                maxlength: "500", disabled: !!chat.broken, enterkeyhint: "send", "aria-label": "Message"});
+            var form = h("form", {class: "mg-chat-form"}, [
+                input,
+                h("button", {type: "submit", class: "mg-button mg-primary", disabled: !!chat.broken, text: "Send"})
+            ]);
+            form.addEventListener("submit", function (e) {
+                e.preventDefault();
+                chat.send(input.value);
+                input.value = "";
+            });
+            append(body, [that.chatUsersEl, that.chatLogEl, form]);
+            that.refreshChat(true);
+        }, false, function () {
+            chat.open = false;
+            that.chatLogEl = null;
+            that.chatUsersEl = null;
+            // The unread badge on the Chat button goes away
+            that.renderBottom();
+        });
+    };
+
+    Renderer.prototype.refreshChat = function (toBottom) {
+        var chat = this.options.chat;
+        if (!chat || !this.chatLogEl)
+            return;
+        var body = this.sheet.body;
+        var atBottom = toBottom || body.scrollHeight - body.scrollTop - body.clientHeight < 40;
+        clear(this.chatLogEl);
+        for (var i = 0; i < chat.messages.length; i++) {
+            var m = chat.messages[i];
+            this.chatLogEl.appendChild(h("div", {class: "mg-msg mg-chat-" + m.kind}, [
+                m.from ? h("b", {text: m.from + ": "}) : null,
+                h("span", {html: m.text})
+            ]));
+        }
+        if (chat.messages.length == 0)
+            this.chatLogEl.appendChild(h("p", {class: "mg-note", text: "No messages yet."}));
+        this.chatUsersEl.textContent = chat.users.length > 0 ? "In the room: " + chat.users.join(", ") : "";
+        chat.markRead();
+        if (atBottom)
+            body.scrollTop = body.scrollHeight;
+    };
+
+    Renderer.prototype.showSettings = function () {
+        var settings = this.options.settings;
+        var that = this;
+        var toggle = function (label, checked, onChange, note) {
+            var box = h("input", {type: "checkbox"});
+            box.checked = checked;
+            box.addEventListener("change", function () {
+                onChange(box.checked);
+                that.options.onSettingsChanged && that.options.onSettingsChanged();
+            });
+            return h("label", {class: "mg-toggle"}, [box, h("span", {}, [label, note ? h("small", {text: note}) : null])]);
+        };
+        this.sheet.open("Settings", function (body) {
+            body.appendChild(h("h4", {text: "Pass automatically when you have nothing to play in"}));
+            var phases = h("div", {class: "mg-toggle-grid"});
+            MobileSettings.PHASES.forEach(function (phase) {
+                phases.appendChild(toggle(formatPhase(phase), settings.autoPassPhases.indexOf(phase) >= 0, function (on) {
+                    settings.setAutoPass(phase, on);
+                }));
+            });
+            body.appendChild(phases);
+            body.appendChild(h("h4", {text: "Playing"}));
+            append(body, [
+                toggle("Send at once after choosing", settings.autoAccept, function (on) {
+                    settings.set("autoAccept", on);
+                }, "No Done tap needed once the last card or an action is chosen."),
+                toggle("Skip the look at your own deck when searching it", settings.autoDismissDeckReveal, function (on) {
+                    settings.set("autoDismissDeckReveal", on);
+                })
+            ]);
+            body.appendChild(h("h4", {text: "Alerts"}));
+            append(body, [
+                toggle("Sound", settings.sound, function (on) {
+                    settings.set("sound", on);
+                }, "When it's your move and the game is in the background, and for timer warnings."),
+                toggle("Vibration", settings.vibrate, function (on) {
+                    settings.set("vibrate", on);
+                }),
+                toggle("Timer warnings", settings.timerAlerts, function (on) {
+                    settings.set("timerAlerts", on);
+                }, "When your decision time or time bank runs low.")
+            ]);
+            body.appendChild(h("p", {class: "mg-note", text: "Auto-pass, sending at once and skipping the deck look are shared with the standard view on this device."}));
+        }, false);
+    };
+
+    // The end of the game: who won and why (from the game's closing messages), and where to go next
+    Renderer.prototype.showGameOver = function () {
+        var s = this.state;
+        var winner = null;
+        var replayId = null;
+        for (var i = s.messages.length - 1; i >= 0; i--) {
+            var text = s.messages[i].text;
+            if (winner == null && /is the winner/.test(text))
+                winner = text.replace(/<[^>]*>/g, "");
+            var replays = text.match(/replayId%3D([^%\s&'"]+)/g) || [];
+            for (var j = 0; j < replays.length && replayId == null; j++) {
+                var id = replays[j].substring("replayId%3D".length);
+                if (id.indexOf(s.bottomPlayerId + "$") == 0)
+                    replayId = id;
+            }
+        }
+        var you = !s.spectator && winner != null;
+        var won = you && winner.indexOf(s.bottomPlayerId + " is the winner") == 0;
+        this.sheet.open("Game over", function (body) {
+            append(body, [
+                you ? h("p", {class: "mg-result " + (won ? "mg-won" : "mg-lost"), text: won ? "You won!" : "You lost"}) : null,
+                h("p", {text: winner || "The game has ended."}),
+                h("div", {class: "mg-menu"}, [
+                    replayId ? h("a", {class: "mg-button", href: "game-mobile.html?replayId=" + replayId, text: "Watch the replay"}) : null,
+                    h("a", {class: "mg-button mg-primary", href: "hall.html", text: "Back to the game hall"})
+                ])
+            ]);
+        }, false);
     };
 
     Renderer.prototype.showPregame = function () {
@@ -1013,11 +1247,14 @@ var MobileRenderer = (function () {
         });
     }
 
-    // live: rebuild the sheet when the game changes (hand, log, player piles)
-    Sheet.prototype.open = function (title, build, live) {
+    // live: rebuild the sheet when the game changes (hand, log, player piles); onClose: called when it closes
+    Sheet.prototype.open = function (title, build, live, onClose) {
+        if (this.onClose)
+            this.onClose();
         this.title.textContent = title;
         this.build = build;
         this.live = live;
+        this.onClose = onClose || null;
         clear(this.body);
         build(this.body);
         this.root.hidden = false;
@@ -1034,9 +1271,15 @@ var MobileRenderer = (function () {
     };
 
     Sheet.prototype.close = function () {
+        if (this.root.hidden)
+            return;
         this.root.hidden = true;
         this.build = null;
         clear(this.body);
+        var onClose = this.onClose;
+        this.onClose = null;
+        if (onClose)
+            onClose();
     };
 
     Renderer.formatTime = formatTime;

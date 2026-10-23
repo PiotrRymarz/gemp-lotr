@@ -95,13 +95,24 @@ button, a.mg-button {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    min-width: 0;
 }
 
+/* The status line stays one line: a long phase name is shortened with "…" so the menu button stays put */
 .mg-phase {
     font-weight: 700;
     color: var(--gold);
     font-size: 15px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 0 1 auto;
+}
+
+.mg-status > :not(.mg-phase) {
+    flex: none;
 }
 
 .mg-twilight {
@@ -677,7 +688,7 @@ button, a.mg-button {
     margin-top: 2px;
 }
 
-.mg-note a, .mg-pregame a {
+.mg-note a, .mg-pregame a, .mg-log a, .mg-chat-log a {
     color: var(--gold);
 }
 
@@ -849,6 +860,149 @@ button, a.mg-button {
     font-size: 24px;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
+}
+
+/* ---- Clocks, notices, chat, settings ---- */
+
+.mg-time-warn {
+    color: var(--warn) !important;
+    font-weight: 700;
+}
+
+.mg-time-danger, .mg-time-out {
+    color: #ff6b5b !important;
+    font-weight: 800;
+}
+
+.mg-decision-head {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.mg-decision-head .mg-decision-text {
+    flex: 1;
+}
+
+.mg-decision-clock {
+    flex: none;
+    font-size: 13px;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    padding-top: 2px;
+}
+
+.mg-banner {
+    margin-bottom: 6px;
+    padding: 6px 10px;
+    border-radius: var(--radius);
+    background: #3d2f10;
+    border: 1px solid var(--warn);
+    color: #ffd98a;
+    font-size: 13px;
+}
+
+.mg-unread {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #e05545;
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mg-button.mg-danger {
+    border-color: #a8443a;
+    color: #ffb4a8;
+}
+
+.mg-chat-users {
+    margin-bottom: 6px;
+}
+
+.mg-chat-log {
+    font-size: 14px;
+    padding-bottom: 8px;
+}
+
+.mg-chat-system {
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.mg-chat-warning {
+    color: var(--warn);
+}
+
+.mg-chat-form {
+    position: sticky;
+    bottom: -16px;
+    display: flex;
+    gap: 6px;
+    padding: 8px 0 4px;
+    background: var(--panel);
+}
+
+.mg-chat-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 10px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;   /* 16px stops iOS from zooming in on focus */
+}
+
+.mg-toggle {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+.mg-toggle input {
+    width: 22px;
+    height: 22px;
+    margin: 0;
+    flex: none;
+    accent-color: var(--gold);
+}
+
+.mg-toggle small {
+    display: block;
+    color: var(--muted);
+    font-size: 12px;
+}
+
+.mg-toggle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 0 12px;
+}
+
+.mg-result {
+    font-size: 24px;
+    font-weight: 800;
+    text-align: center;
+    margin: 4px 0 8px;
+}
+
+.mg-won {
+    color: #8fdc5a;
+}
+
+.mg-lost {
+    color: #ff8f80;
 }
 
 /* ---- Game log ---- */

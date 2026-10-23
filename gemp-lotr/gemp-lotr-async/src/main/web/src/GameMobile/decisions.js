@@ -17,7 +17,8 @@
 //   press(name)          a button was pressed
 //   stepper              INTEGER only: {value, min, max}
 //   note                 an extra line to show (for example a warning before sending)
-// The decision calls send(value) when the player is done.
+// The decision calls send(value) when the player is done. With the auto-accept setting, picking the last card needed
+// (or an action) sends at once, as on the desktop.
 
 (function (root) {
 
@@ -41,7 +42,8 @@
 
     // ---- Base ----
 
-    function Decision(decision, state, send) {
+    function Decision(decision, state, send, options) {
+        this.autoAccept = !!(options && options.autoAccept);
         this.id = decision.id;
         this.type = decision.type;
         this.text = decision.text || "";
@@ -90,8 +92,8 @@
 
     // ---- INTEGER: a number between min and max ----
 
-    var IntegerDecision = extend(function (decision, state, send) {
-        Decision.call(this, decision, state, send);
+    var IntegerDecision = extend(function (decision, state, send, options) {
+        Decision.call(this, decision, state, send, options);
         var min = intParam(decision, "min", 0);
         var max = intParam(decision, "max", 1000);
         var value = intParam(decision, "defaultValue", min);
@@ -114,8 +116,8 @@
 
     // ---- MULTIPLE_CHOICE: one of several answers ----
 
-    var MultipleChoiceDecision = extend(function (decision, state, send) {
-        Decision.call(this, decision, state, send);
+    var MultipleChoiceDecision = extend(function (decision, state, send, options) {
+        Decision.call(this, decision, state, send, options);
         this.results = params(decision, "results");
     });
 
@@ -133,8 +135,8 @@
 
     // ---- Picking several cards: CARD_SELECTION (cards in play) and ARBITRARY_CARDS (cards shown just for this) ----
 
-    function SelectionDecision(decision, state, send, ids, selectable) {
-        Decision.call(this, decision, state, send);
+    function SelectionDecision(decision, state, send, options, ids, selectable) {
+        Decision.call(this, decision, state, send, options);
         this.min = intParam(decision, "min", 0);
         this.max = intParam(decision, "max", ids.length);
         this.ids = ids;
@@ -159,8 +161,11 @@
         var index = this.selected.indexOf(id);
         if (index >= 0)
             this.selected.splice(index, 1);
-        else if (this.selected.length < this.max)
+        else if (this.selected.length < this.max) {
             this.selected.push(id);
+            if (this.autoAccept && this.selected.length == this.max)
+                this.finish(this.answerValue());
+        }
     };
 
     SelectionDecision.prototype.answerValue = function () {
@@ -192,9 +197,9 @@
         return "Choose " + (this.min > 0 ? this.min + " to " : "up to ") + this.max;
     };
 
-    var CardSelectionDecision = function (decision, state, send) {
+    var CardSelectionDecision = function (decision, state, send, options) {
         var ids = params(decision, "cardId");
-        SelectionDecision.call(this, decision, state, send, ids, ids);
+        SelectionDecision.call(this, decision, state, send, options, ids, ids);
         this.usesHand = ids.some(function (id) {
             return isInHand(state, id);
         });
@@ -202,7 +207,7 @@
     };
     CardSelectionDecision.prototype = Object.create(SelectionDecision.prototype);
 
-    var ArbitraryCardsDecision = function (decision, state, send) {
+    var ArbitraryCardsDecision = function (decision, state, send, options) {
         var ids = params(decision, "cardId");
         var selectable = params(decision, "selectable");
         var blueprints = params(decision, "blueprintId");
@@ -210,7 +215,7 @@
         var selectableIds = ids.filter(function (id, i) {
             return selectable[i] == "true";
         });
-        SelectionDecision.call(this, decision, state, send, ids, selectableIds);
+        SelectionDecision.call(this, decision, state, send, options, ids, selectableIds);
         this.choiceCards = ids.map(function (id, i) {
             return {id: id, blueprintId: blueprints[i], label: nullText(texts[i]), selectable: selectable[i] == "true"};
         });
@@ -220,8 +225,8 @@
 
     // ---- ACTION_CHOICE: one of several actions, each shown as a card ----
 
-    var ActionChoiceDecision = extend(function (decision, state, send) {
-        Decision.call(this, decision, state, send);
+    var ActionChoiceDecision = extend(function (decision, state, send, options) {
+        Decision.call(this, decision, state, send, options);
         var actionIds = params(decision, "actionId");
         var texts = params(decision, "actionText");
         this.choiceCards = params(decision, "blueprintId").map(function (blueprintId, i) {
@@ -239,8 +244,11 @@
     };
 
     ActionChoiceDecision.prototype.tap = function (id) {
-        if (this.isSelectable(id))
-            this.selectedId = this.selectedId == id ? null : id;
+        if (!this.isSelectable(id))
+            return;
+        this.selectedId = this.selectedId == id ? null : id;
+        if (this.autoAccept && this.selectedId != null)
+            this.finish(this.answerValue());
     };
 
     ActionChoiceDecision.prototype.answerValue = function () {
@@ -262,8 +270,8 @@
 
     // ---- CARD_ACTION_CHOICE: use a card (in play, in hand, or elsewhere), or pass ----
 
-    var CardActionChoiceDecision = extend(function (decision, state, send) {
-        Decision.call(this, decision, state, send);
+    var CardActionChoiceDecision = extend(function (decision, state, send, options) {
+        Decision.call(this, decision, state, send, options);
         var cardIds = params(decision, "cardId");
         var blueprints = params(decision, "blueprintId");
         var actionIds = params(decision, "actionId");
@@ -312,6 +320,8 @@
         if (actions.length == 1) {
             this.selectedCard = id;
             this.selectedAction = actions[0].id;
+            if (this.autoAccept)
+                this.finish(this.selectedAction);
             return;
         }
         this.pendingCard = id;
@@ -324,6 +334,8 @@
         this.selectedCard = this.pendingCard;
         this.selectedAction = actionId;
         this.pendingCard = null;
+        if (this.autoAccept)
+            this.finish(this.selectedAction);
     };
 
     CardActionChoiceDecision.prototype.selectedActionText = function () {
@@ -366,8 +378,8 @@
 
     // ---- ASSIGN_MINIONS: tap a minion, then the character it skirmishes ----
 
-    var AssignMinionsDecision = extend(function (decision, state, send) {
-        Decision.call(this, decision, state, send);
+    var AssignMinionsDecision = extend(function (decision, state, send, options) {
+        Decision.call(this, decision, state, send, options);
         this.freeCharacters = params(decision, "freeCharacters");
         this.minions = params(decision, "minions");
         this.assigned = {};             // minion -> character, for the minions of this decision
@@ -488,10 +500,10 @@
     };
 
     var MobileDecisions = {
-        // decision: state.decision; send(value) is called once with the answer
-        create: function (decision, state, send) {
+        // decision: state.decision; send(value) is called once with the answer; options: {autoAccept}
+        create: function (decision, state, send, options) {
             var Type = TYPES[decision.type];
-            return Type ? new Type(decision, state, send) : null;
+            return Type ? new Type(decision, state, send, options) : null;
         },
         TYPES: Object.keys(TYPES)
     };

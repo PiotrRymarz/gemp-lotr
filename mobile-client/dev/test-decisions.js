@@ -43,9 +43,9 @@ function decision(type, params, text) {
     return {id: "5", type, text: text || "Question", participantId: "me", params: p};
 }
 
-function make(state, d) {
+function make(state, d, options) {
     const sent = [];
-    const answering = MobileDecisions.create(d, state, value => sent.push(value));
+    const answering = MobileDecisions.create(d, state, value => sent.push(value), options);
     return {d: answering, sent};
 }
 
@@ -242,6 +242,38 @@ test("ASSIGN_MINIONS: assignments already made stay, Reset goes back to them", (
     d.tap("1");
     d.press("done");
     assert.deepEqual(sent, ["1 10,2 12"]);
+});
+
+test("auto-accept: picking the last card needed, or an action, sends at once", () => {
+    const auto = {autoAccept: true};
+    const selection = make(table(), decision("CARD_SELECTION", {min: "1", max: "2", cardId: ["1", "2"]}), auto);
+    selection.d.tap("1");
+    assert.deepEqual(selection.sent, [], "1 of 2: not yet");
+    selection.d.tap("2");
+    assert.deepEqual(selection.sent, ["1,2"]);
+
+    const action = make(table(), decision("CARD_ACTION_CHOICE", {
+        cardId: ["3"], blueprintId: ["inPlay"], actionId: ["21"], actionText: ["Play"], testingText: ["null"]
+    }), auto);
+    action.d.tap("3");
+    assert.deepEqual(action.sent, ["21"]);
+
+    const menu = make(table(), decision("CARD_ACTION_CHOICE", {
+        cardId: ["1", "1"], blueprintId: ["inPlay", "inPlay"], actionId: ["31", "32"], actionText: ["Heal", "Exert"],
+        testingText: ["null", "null"]
+    }), auto);
+    menu.d.tap("1");
+    assert.deepEqual(menu.sent, [], "the menu comes first");
+    menu.d.choose("31");
+    assert.deepEqual(menu.sent, ["31"]);
+
+    const choice = make(table(), decision("ACTION_CHOICE", {blueprintId: ["1_2"], actionId: ["7"], actionText: ["Go"]}), auto);
+    choice.d.tap("action0");
+    assert.deepEqual(choice.sent, ["7"]);
+
+    const off = make(table(), decision("CARD_SELECTION", {min: "1", max: "1", cardId: ["1"]}));
+    off.d.tap("1");
+    assert.deepEqual(off.sent, [], "without auto-accept Done is needed");
 });
 
 console.log("\n" + passed + " passed" + (process.exitCode ? ", some FAILED" : ""));

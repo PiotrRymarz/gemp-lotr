@@ -11,6 +11,7 @@ Tools for building and testing the mobile client against a local server. None of
 | `mobile-player.js` | Plays asdf's whole game through the mobile page in a phone or tablet browser, tapping cards and buttons with random choices. Run it while `autoplay.js --players qwer` plays the other side. It fails on script errors or if the page gets stuck. |
 | `setup-decks.js` | Saves the two decks `autoplay.js` needs. Run it once on a fresh database. |
 | `screenshots.js` | Opens a replay on the mobile screen at phone and tablet sizes (portrait and landscape) and takes screenshots at key moments. It also reports script errors and sideways page overflow. |
+| `mobile-features.js` | Checks, in a live game against `autoplay.js --players qwer`: the your-move title, the clocks counting down, chat both ways with the unread badge, the auto-pass cookie reaching the server, reconnecting after the network drops, and conceding up to the game-over screen. Lost chat messages are reported as warnings (a known local-server issue). |
 | `xml.js` | Minimal XML reader shared by the scripts. |
 | `fixtures/` | One recorded game: everything the server sent player `asdf` live (`game1-asdf/`), and the same game's replay. |
 
@@ -34,6 +35,7 @@ node test-state.js                               # run the state model tests
 node test-decisions.js                           # run the decision tests
 node autoplay.js --players qwer &                # then play asdf through the mobile page:
 NODE_PATH=/opt/node-tools/node_modules node mobile-player.js <gameId> ["Pixel 7 landscape"] [--shots DIR]
+NODE_PATH=/opt/node-tools/node_modules node mobile-features.js <gameId> [--shots DIR]   # also with autoplay --players qwer
 REPLAY='asdf$<id>' OUT=/tmp/shots NODE_PATH=/opt/node-tools/node_modules node screenshots.js
 ```
 
