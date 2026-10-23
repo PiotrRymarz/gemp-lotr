@@ -1,8 +1,8 @@
 // The mobile game screen: loads a live game (game-mobile.html?gameId=...) or a replay (?replayId=...),
 // feeds the server's events into a MobileGameState and draws it with a MobileRenderer.
 //
-// Phase 1 is read-only: a player's own decisions are shown with a link to the standard view, where they can be
-// answered. The server calls are the desktop client's (communication.js), so nothing changes on the server.
+// A player answers their decisions here (decisions.js); spectators and replays only watch. The server calls are the
+// desktop client's (communication.js), so nothing changes on the server.
 
 var MobileGame = (function () {
 
@@ -66,6 +66,7 @@ var MobileGame = (function () {
             for (var i = 0; i < events.length; i++)
                 this.state.apply(MobileGameState.eventFromXml(events[i]));
             this.state.applyClocks(readClocks(root));
+            this.updateDecision();
             this.renderer.render();
         } catch (e) {
             console.log(e);
@@ -80,6 +81,29 @@ var MobileGame = (function () {
         setTimeout(function () {
             that.poll();
         }, 100);
+    };
+
+    // A new decision for this player gets its own answering object; the same one is kept while it is being answered
+    MobileGame.prototype.updateDecision = function () {
+        var decision = this.state.decision;
+        var current = this.renderer.decision;
+        if (decision == null || this.mode != "live" || this.state.spectator) {
+            this.renderer.decision = null;
+            return;
+        }
+        if (current && current.id == decision.id && !current.sent)
+            return;
+        var that = this;
+        this.renderer.decision = MobileDecisions.create(decision, this.state, function (value) {
+            that.answer(decision.id, value);
+        });
+    };
+
+    MobileGame.prototype.answer = function (decisionId, value) {
+        var that = this;
+        this.comm.gameDecisionMade(decisionId, value, this.channelNumber, function (xml) {
+            that.processXml(xml);
+        }, this.errorMap());
     };
 
     MobileGame.prototype.poll = function () {

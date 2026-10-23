@@ -140,33 +140,129 @@ var MobileRenderer = (function () {
         this.lastEffectSeq = 0;
         this.status = null;     // extra status from the controller: {text, kind}
         this.replay = null;     // replay controls from the controller
+        this.decision = null;   // the decision being answered (decisions.js), live games only
 
         var that = this;
         // One listener for every card, site and card name in the log
-        document.getElementById("mg-app").addEventListener("click", function (e) {
+        var app = document.getElementById("mg-app");
+        app.addEventListener("click", function (e) {
             that.handleTap(e);
         });
         this.sheet.body.addEventListener("click", function (e) {
             that.handleTap(e);
         });
+        this.listenForLongPress(app);
+        this.listenForLongPress(this.sheet.body);
     }
 
+    var LONG_PRESS_MS = 450;
+
+    // A long press on a card always opens it, also when a tap would select it for a decision
+    Renderer.prototype.listenForLongPress = function (root) {
+        var that = this;
+        var timer = null;
+        var start = null;
+        var cancel = function () {
+            clearTimeout(timer);
+            timer = null;
+        };
+        root.addEventListener("pointerdown", function (e) {
+            var card = e.target.closest(".mg-card");
+            if (!card)
+                return;
+            start = {x: e.clientX, y: e.clientY};
+            cancel();
+            timer = setTimeout(function () {
+                timer = null;
+                that.suppressClick = true;
+                that.showCardOrChoice(card);
+            }, LONG_PRESS_MS);
+        });
+        root.addEventListener("pointermove", function (e) {
+            if (timer && start && Math.abs(e.clientX - start.x) + Math.abs(e.clientY - start.y) > 10)
+                cancel();
+        });
+        root.addEventListener("pointerup", cancel);
+        root.addEventListener("pointercancel", cancel);
+        // No browser menu on a long-pressed card image
+        root.addEventListener("contextmenu", function (e) {
+            if (e.target.closest(".mg-card"))
+                e.preventDefault();
+        });
+    };
+
+    Renderer.prototype.showCardOrChoice = function (cardEl) {
+        var id = cardEl.getAttribute("data-card-id");
+        if (this.state.cards[id] && !cardEl.hasAttribute("data-choice"))
+            this.showCard(id);
+        else if (cardEl.getAttribute("data-bp"))
+            this.showBlueprint(cardEl.getAttribute("data-bp"));
+    };
+
     Renderer.prototype.handleTap = function (e) {
+        if (this.suppressClick) {
+            // The click that ends a long press
+            this.suppressClick = false;
+            e.preventDefault();
+            return;
+        }
         var target = e.target.closest("[data-card-id], [data-blueprint], [data-player], [data-action]");
         if (!target)
             return;
         if (target.hasAttribute("data-card-id")) {
-            this.showCard(target.getAttribute("data-card-id"));
+            var id = target.getAttribute("data-card-id");
+            if (this.decision && !this.decision.sent && this.decision.isSelectable(id))
+                this.tapForDecision(id);
+            else
+                this.showCardOrChoice(target);
         } else if (target.hasAttribute("data-blueprint")) {
             this.showBlueprint(target.getAttribute("data-blueprint"));
         } else if (target.hasAttribute("data-player")) {
             this.showPlayer(target.getAttribute("data-player"));
         } else {
-            var action = this.actions[target.getAttribute("data-action")];
-            if (action)
-                action.call(this, target);
+            var name = target.getAttribute("data-action");
+            if (name.indexOf("decision:") == 0)
+                this.pressForDecision(name.substring(9));
+            else if (name.indexOf("decision-choose:") == 0)
+                this.chooseForDecision(name.substring(16));
+            else if (this.actions[name])
+                this.actions[name].call(this, target);
         }
         e.preventDefault();
+    };
+
+    // ---- Answering decisions ----
+
+    Renderer.prototype.tapForDecision = function (id) {
+        var result = this.decision.tap(id);
+        if (result && result.menu) {
+            // The card has several actions: let the player pick one
+            this.sheet.open("Choose an action", function (body) {
+                var list = h("div", {class: "mg-menu"});
+                for (var i = 0; i < result.menu.length; i++)
+                    list.appendChild(h("button", {type: "button", class: "mg-button", "data-action": "decision-choose:" + result.menu[i].id, html: linkCardHints(result.menu[i].text || "")}));
+                body.appendChild(list);
+            }, false);
+            return;
+        }
+        this.render();
+    };
+
+    Renderer.prototype.chooseForDecision = function (actionId) {
+        if (!this.decision)
+            return;
+        this.decision.choose(actionId);
+        this.sheet.close();
+        this.render();
+    };
+
+    Renderer.prototype.pressForDecision = function (name) {
+        if (!this.decision || this.decision.sent)
+            return;
+        this.decision.press(name);
+        if (this.decision && this.decision.sent)
+            this.sheet.close();
+        this.render();
     };
 
     Renderer.prototype.render = function () {
@@ -190,6 +286,25 @@ var MobileRenderer = (function () {
         }
         this.showEffect();
         this.sheet.refresh();
+        this.revealSelectableCards();
+    };
+
+    // When a new decision asks for cards on the table, make sure the first one is on screen
+    Renderer.prototype.revealSelectableCards = function () {
+        if (!this.decision || this.decision == this.revealedFor)
+            return;
+        this.revealedFor = this.decision;
+        var table = document.getElementById("mg-table");
+        var cards = table.querySelectorAll(".mg-card.mg-selectable");
+        if (cards.length == 0)
+            return;
+        var view = table.getBoundingClientRect();
+        for (var i = 0; i < cards.length; i++) {
+            var rect = cards[i].getBoundingClientRect();
+            if (rect.bottom > view.top && rect.top < view.bottom)
+                return;
+        }
+        cards[0].scrollIntoView({block: "nearest", inline: "nearest"});
     };
 
     Renderer.prototype.saveScroll = function () {
@@ -481,13 +596,11 @@ var MobileRenderer = (function () {
             line = h("div", {class: "mg-decision", text: "Game over"});
         } else if (s.decision && this.options.mode == "replay") {
             line = h("div", {class: "mg-decision"}, [h("b", {text: s.decision.participantId + ": "}), h("span", {html: linkCardHints(s.decision.text || "")})]);
-        } else if (s.decision) {
+        } else if (s.decision && !this.decision) {
+            // A decision this screen can't answer (an unknown type): the standard view can
             line = h("div", {class: "mg-decision mg-mine"}, [
                 h("div", {html: linkCardHints(s.decision.text || "")}),
-                h("div", {class: "mg-note"}, [
-                    "Answering on mobile comes next. ",
-                    h("a", {href: this.options.standardViewUrl, text: "Answer in the standard view"})
-                ])
+                h("div", {class: "mg-note"}, [h("a", {href: this.options.standardViewUrl, text: "Answer in the standard view"})])
             ]);
         } else {
             var who = s.currentPlayerId ? s.currentPlayerId + "'s turn" : "";
@@ -502,7 +615,77 @@ var MobileRenderer = (function () {
         if (this.replay)
             buttons.appendChild(this.replayControls());
 
-        append(this.bottom, [line, buttons]);
+        var deciding = this.decision != null && !s.ended && !(this.status && this.status.kind == "error");
+        this.bottom.classList.toggle("mg-deciding", deciding);
+        if (deciding)
+            this.decisionPanel(buttons);
+        else
+            append(this.bottom, [line, buttons]);
+    };
+
+    // The decision being answered: question, cards to choose from, and its buttons next to Hand and Log
+    Renderer.prototype.decisionPanel = function (buttons) {
+        var d = this.decision;
+        var panel = h("div", {class: "mg-decision mg-mine"}, [
+            h("div", {class: "mg-decision-text", html: linkCardHints(d.text)}),
+            d.note ? h("div", {class: "mg-note", html: linkCardHints(d.note)}) : null
+        ]);
+
+        var strips = [];
+        if (d.choiceCards.length > 0) {
+            var choices = h("div", {class: "mg-row mg-strip", "data-row": "choices"});
+            for (var i = 0; i < d.choiceCards.length; i++)
+                choices.appendChild(this.choiceElement(d.choiceCards[i]));
+            strips.push(choices);
+        }
+        var hand = this.ownHand();
+        if (d.usesHand && hand && hand.length > 0) {
+            var handRow = h("div", {class: "mg-row mg-strip mg-inline-hand", "data-row": "inline-hand"});
+            for (var j = 0; j < hand.length; j++)
+                handRow.appendChild(this.cardSlot(hand[j]));
+            strips.push(h("div", {class: "mg-inline-hand-box"}, [h("h3", {class: "mg-zone-label", text: "Your hand"}), handRow]));
+        }
+
+        var controls = h("div", {class: "mg-controls"});
+        if (d.sent) {
+            controls.appendChild(h("span", {class: "mg-note", text: "Sending…"}));
+        } else {
+            if (d.stepper) {
+                controls.appendChild(h("div", {class: "mg-stepper"}, [
+                    h("button", {type: "button", class: "mg-button", "data-action": "decision:dec", "aria-label": "Less", disabled: d.stepper.value <= d.stepper.min, text: "−"}),
+                    h("span", {class: "mg-stepper-value", text: "" + d.stepper.value}),
+                    h("button", {type: "button", class: "mg-button", "data-action": "decision:inc", "aria-label": "More", disabled: d.stepper.value >= d.stepper.max, text: "+"})
+                ]));
+            }
+            var list = d.controls();
+            for (var k = 0; k < list.length; k++) {
+                var c = list[k];
+                var attrs = {type: "button", class: "mg-button" + (c.primary ? " mg-primary" : ""), "data-action": "decision:" + c.name, disabled: !!c.disabled};
+                if (c.html)
+                    attrs.html = linkCardHints(c.label).replace(/data-blueprint=/g, "data-hint=");
+                else
+                    attrs.text = c.label;
+                controls.appendChild(h("button", attrs));
+            }
+        }
+
+        append(this.bottom, [panel].concat(strips).concat([controls, buttons]));
+    };
+
+    // A card offered by the decision that isn't on the table (from the deck, discard pile, or an action shown as a card)
+    Renderer.prototype.choiceElement = function (choice) {
+        var card = this.state.cards[choice.id];
+        var blueprintId = choice.blueprintId || (card && card.blueprintId);
+        var el = this.cardElement({
+            cardId: choice.id, blueprintId: blueprintId, zone: "SPECIAL", tokens: {}, stats: null,
+            testingText: choice.label
+        }, "row");
+        el.setAttribute("data-choice", "");
+        el.setAttribute("data-bp", blueprintId || "");
+        if (!choice.selectable)
+            el.classList.add("mg-not-selectable");
+        var caption = choice.label && choice.label != blueprintId ? h("div", {class: "mg-choice-label", html: linkCardHints(choice.label).replace(/data-blueprint=/g, "data-hint=")}) : null;
+        return h("div", {class: "mg-slot"}, [el, caption]);
     };
 
     Renderer.prototype.replayControls = function () {
@@ -582,8 +765,14 @@ var MobileRenderer = (function () {
             classes.push("mg-flipped");
         if (card.skirmish)
             classes.push("mg-in-skirmish");
+        if (this.decision && !this.decision.sent) {
+            if (this.decision.isSelected(card.cardId))
+                classes.push("mg-selected");
+            else if (this.decision.isSelectable(card.cardId))
+                classes.push("mg-selectable");
+        }
 
-        var el = h("div", {class: classes.join(" "), "data-card-id": card.cardId, "data-label": card.testingText || card.blueprintId, role: "button", tabindex: "0"},
+        var el = h("div", {class: classes.join(" "), "data-card-id": card.cardId, "data-bp": card.blueprintId, "data-label": card.testingText || card.blueprintId, role: "button", tabindex: "0"},
             cardImage(card.flipped ? visual.backUrl : visual.imageUrl, card.blueprintId));
         if (visual.overlayUrl && !card.flipped)
             el.appendChild(h("div", {class: "mg-meta-overlay"}, cardImage(visual.overlayUrl, "")));

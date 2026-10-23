@@ -3,7 +3,7 @@
 Notes for the next session. When Piotr types "continue", **read this file first**, then
 [PLAN.md](PLAN.md) and [REMARKS.md](REMARKS.md), and carry on from "Next step" below.
 
-Last updated: end of the session that finished Phase 1 (2026-10-22).
+Last updated: end of the session that finished Phase 2 (2026-10-23).
 
 ## Context in one paragraph
 
@@ -27,49 +27,23 @@ push after each meaningful step (he relies on GitHub to keep the work).
 
 - ✅ **Phase 0**: PWA shell. Manifest, service worker `sw.js` (network-first, own static files only), offline page, content types on the server.
 - ✅ **Phase 1**: read-only mobile game screen `game-mobile.html` (state model, renderer, live and replay). Details in PLAN.md.
-- ⏭ **Phase 2**: playing from the phone. **This is the next step.**
-- Phases 3–5: see PLAN.md.
+- ✅ **Phase 2**: playing from the phone. All 7 decision types (`decisions.js`), tap to select, long press for details. Tested with whole games played through the mobile page (`dev/mobile-player.js`).
+- ⏭ **Phase 3**: the rest of the game screen. **This is the next step.**
+- Phases 4–5: see PLAN.md.
 
-## Next step: Phase 2, answering decisions on mobile
+## Next step: Phase 3, the rest of the game screen
 
-Goal: a full game can be played from `game-mobile.html` against a desktop player (or `autoplay.js`).
+From PLAN.md, Phase 3, plus what Phase 2 left out:
 
-### What the server asks and how to answer
+- **Chat:** the desktop client uses `js/gemp-022/chat.js` (`ChatBoxUI`, `beginGameChat`). Reuse its server calls in a Chat sheet or tab, together with the players in the room.
+- **Game options:** concede (`comm.concede`) and request a cancel (`comm.cancel`), both behind a confirmation. Put them in the ☰ menu.
+- **Settings**, remembered on the device: auto-pass phases, auto-accept after selecting, always use a list for multiple choice, auto-dismiss your own deck reveal, animation speed. The desktop versions are in `game.html` (`#settingsBox`) and how they're applied is in `gameUi.js`. Apply auto-pass in `gameMobile.updateDecision` (answer `""` for `CARD_ACTION_CHOICE` with no cards in phases the player chose) and auto-accept in `decisions.js`.
+- **Timers:** count the clocks down locally between server updates (desktop: `startTimerTick`, `renderDecisionClock` in `gameUi.js`). Show the decision clock (`decisionClock` / `decisionLimit`) while it's your decision, and warn when time runs low.
+- **Your turn:** a sound (the desktop uses `/gemp-lotr/src/assets/awaiting_decision.mp3`) and/or a short vibration (`navigator.vibrate`) when a decision arrives, and the page title changes like the desktop's `startAnimatingTitle`.
+- **End of game:** a clear result screen (who won and why: it's in the last messages), with links to the hall and the replay.
+- **Reconnecting:** after the phone sleeps or the network drops, retry `updateGameState` a few times before showing the error. The server answers 410 after long inactivity; then reload the game.
 
-Decisions arrive as a `D` event and are stored in `state.decision` = `{id, type, text, participantId, params}`.
-The answer is sent with `comm.gameDecisionMade(decisionId, value, channelNumber, callback, errorMap)`. The response is
-an update XML, so process it like any other (`processXml`) and polling continues. The desktop implementations are in
-`js/gemp-022/gameUi.js` (line numbers as of this branch):
-
-| Type | Parameters | Answer | Desktop code |
-|---|---|---|---|
-| `INTEGER` | `min`, `max`, `defaultValue` | the number | `integerDecision` ~1911 |
-| `MULTIPLE_CHOICE` | `results[]` | index of the chosen result | `multipleChoiceDecision` ~1958 |
-| `ARBITRARY_CARDS` | `min`, `max`, `cardId[]`, `blueprintId[]`, `selectable[]`, `testingText[]`, `deckInspection` | selected card ids, comma-separated. The cards are **not** on the table: show them in a sheet. | `arbitraryCardsDecision` ~2191 |
-| `ACTION_CHOICE` | `blueprintId[]`, `actionId[]`, `actionText[]` | one `actionId` | `actionChoiceDecision` ~2834 |
-| `CARD_ACTION_CHOICE` | `cardId[]`, `blueprintId[]` (`"inPlay"` = a card on the table or in hand, otherwise a "virtual" card from elsewhere, such as the discard pile), `actionId[]`, `actionText[]` | `""` to pass, or one `actionId`. A card can have several actions: let the player choose. | `cardActionChoiceDecision` ~2316 |
-| `CARD_SELECTION` | `min`, `max`, `cardId[]` (cards on the table) | selected card ids, comma-separated | `cardSelectionDecision` ~2932 |
-| `ASSIGN_MINIONS` | `freeCharacters[]`, `minions[]` | per free character `"charId minionId minionId"`, joined with commas, in the order of `freeCharacters`. Warn if a minion is left unassigned. | `assignMinionsDecision` ~3010 |
-
-Desktop settings worth copying later (Phase 3): auto-pass phases, auto-accept, always use a drop-down, and
-auto-dismiss your own deck reveal.
-
-### Planned design
-
-- `gameMobile.js` `processXml` currently **stops polling** while a decision is pending; that stays. Add `answer(value)`, which calls `gameDecisionMade` and then `processXml`.
-- New file `src/GameMobile/decisions.js`: one handler per type. Each one marks which cards are selectable and builds the decision panel in the bottom bar: text, big Done / Pass / Reset buttons, a number stepper for INTEGER, and buttons or a list for MULTIPLE_CHOICE.
-- **Taps:** while a decision is pending, tapping a selectable card selects it, and a **long press (~450 ms)** opens the card details. Today a tap always opens the details (`render.js` `handleTap`). Highlight selectable cards (a gold outline) and selected ones (a stronger outline plus a check mark).
-- **Hand on phones:** when the decision involves hand cards, show the hand inline above the bottom bar (like the tablet dock) instead of making the player open the sheet.
-- **Cards from elsewhere** (ARBITRARY_CARDS, ACTION_CHOICE, virtual cards in CARD_ACTION_CHOICE): show them in a sheet or strip with the same tap-to-select.
-- **Assign minions:** tap a minion, then tap a companion (tap the minion again to unassign). Show the pairs live in the Assignments section before sending.
-- Keep `renderer.render()` as a full rebuild; keep the selection in a decision object and apply it while rendering.
-- Remove the "Answer in the standard view" note once all 7 types work. Keep the menu link to the standard view.
-
-### How to test Phase 2
-
-- Unit-test the answer building (for example, the assignment string) in Node, like `test-state.js`.
-- Live: `node autoplay.js --players qwer` plays qwer. Drive asdf on `game-mobile.html` with Playwright (phone size), tapping through the decisions. A small script that plays asdf through the mobile UI with random taps until the game ends would test every decision type.
-- Run `screenshots.js` on a replay to check nothing in the read-only views broke.
+Test the same way as Phase 2: `autoplay.js --players qwer` plus `mobile-player.js`, and Node tests for any new logic.
 
 ## Setting up a new session (the container starts empty)
 
@@ -84,7 +58,7 @@ auto-dismiss your own deck reveal.
 2. **Start the local server.** `mobile-client/dev/start-local-server.sh` starts dockerd and MariaDB, bind-mounts the folders, builds with Maven (a few minutes the first time; run it in the background with a long timeout) and starts the server on port 80.
 3. **Create the test decks:** `cd mobile-client/dev && node setup-decks.js`.
 4. **Make a game:** `node autoplay.js` prints the replay ids, such as `asdf$...`.
-5. **Run the tests:** `node test-state.js` (11 should pass). For screenshots, use `screenshots.js` (see `dev/README.md`).
+5. **Run the tests:** `node test-state.js` (11 should pass) and `node test-decisions.js` (15). For screenshots, use `screenshots.js`; for a whole game through the mobile page, use `mobile-player.js` (see `dev/README.md`).
 
 ## Gotchas learned the hard way
 
@@ -97,3 +71,6 @@ auto-dismiss your own deck reveal.
 - **Class names:** the card sizes become classes (`mg-row`, `mg-mini`, `mg-path`). Don't name a size after an existing class: "site" clashed with the `.mg-site` slots.
 - **The server's long poll** returns after about 20 s with no events: that's normal.
 - **Test users:** `asdf`/`asdf`, `qwer`/`qwer`, and `Librarian`/`qwer` (good for spectating).
+- **Every decision has id "1".** Don't use the id to tell decisions apart; use the type and text, or the fact that the previous one was sent.
+- **In Playwright, tap visible copies of a card** (`.mg-card[data-card-id="…"]:visible`). The tablet hand area exists but is hidden on phones, and `.first()` follows page order.
+- **Answering decisions on the desktop:** the formats are in the `*Decision` functions in `gameUi.js`, and `decisions.js` follows them.

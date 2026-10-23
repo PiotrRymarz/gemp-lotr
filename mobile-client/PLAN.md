@@ -211,7 +211,32 @@ The original task list for Phase 1:
 - Develop it against **replays** (`game-mobile.html?replayId=…`) and spectating.
 - **Result:** you can watch a replay or spectate a live game on a phone, and everything on the table can be read.
 
-### Phase 2 – Playing: decisions and actions
+### Phase 2 – Playing: decisions and actions ✅ done
+
+What was built:
+
+- `src/GameMobile/decisions.js`: one handler per decision type. Each knows which cards can be tapped, what is selected, which buttons to show and the answer to send. The answers use the same format as the desktop client.
+  - **Number** (`INTEGER`): − and + buttons with the number between them, and OK.
+  - **Multiple choice:** one big button per answer.
+  - **Choosing cards on the table** (`CARD_SELECTION`): tap to select or deselect, up to the maximum. Done is enabled once the minimum is reached, and Reset clears the selection.
+  - **Choosing from shown cards** (`ARBITRARY_CARDS`, such as the starting fellowship or a deck search): the cards appear in a strip in the bottom panel. Cards that can't be chosen are dimmed.
+  - **Choosing an action** (`ACTION_CHOICE`): the actions appear as cards with their text underneath.
+  - **Using a card or passing** (`CARD_ACTION_CHOICE`): playable cards on the table and in hand are highlighted. One tap selects a card, and a card with several actions asks which one. Cards playable from elsewhere (the discard pile, for example) appear in the strip. Pass or Done.
+  - **Assigning minions:** tap a minion, then the character; tap the minion again to unassign. The table shows the pairs as you make them. Reset goes back to the assignments that were already made, and you're asked to confirm if a minion is left unassigned.
+- Tapping a highlighted card selects it, and a long press always opens the card in full. Selectable cards have a gold frame, and selected ones a green frame with a ✓.
+- On phones, your hand appears inside the bottom panel whenever it takes part in the decision. If cards to choose are off screen, the table scrolls to the first one.
+- `gameMobile.js` sends the answer (`gameDecisionMade`) and continues with the server's reply. Note: the server numbers every decision "1".
+
+Checked on the local server:
+
+- **Node tests:** `mobile-client/dev/test-decisions.js`, 15 tests of every decision type's taps, buttons and answers. The state tests (11) still pass.
+- **Full games through the mobile page:** `mobile-client/dev/mobile-player.js` plays asdf's whole game by tapping cards and buttons (random choices) while `autoplay.js` plays qwer. Seven complete games on phone portrait, phone landscape, tablet portrait and tablet landscape, with all 7 decision types answered and no script errors.
+- Replays still show correctly at all four sizes.
+
+Not done yet (Phase 3): the desktop settings (auto-pass phases, auto-accept, …), timers counting down, sound or vibration when it's your turn, chat, and concede.
+
+The original task list for Phase 2:
+
 
 - Port the 7 decision types to the touch decision panel: choosing cards, choosing an action on a card, a number, multiple choice, and assigning minions.
 - Card selection: tap to select, highlight valid choices, and a clear Done or Pass button.

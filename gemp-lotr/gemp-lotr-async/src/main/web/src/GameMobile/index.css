@@ -724,6 +724,133 @@ button, a.mg-button {
     font-variant-numeric: tabular-nums;
 }
 
+/* ---- Answering a decision ---- */
+
+/* Cards the decision lets you tap, and the ones you picked */
+.mg-card.mg-selectable::before, .mg-card.mg-selected::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    border-radius: var(--radius);
+    pointer-events: none;
+}
+
+.mg-card.mg-selectable::before {
+    border: 3px solid var(--gold);
+    box-shadow: inset 0 0 12px rgba(209, 169, 77, .45);
+}
+
+.mg-card.mg-selected::before {
+    border: 4px solid #8fdc5a;
+    background: rgba(143, 220, 90, .22);
+}
+
+.mg-card.mg-selected::after {
+    content: "✓";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 3;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: #8fdc5a;
+    color: #10200a;
+    font-weight: 900;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.mg-card.mg-not-selectable {
+    filter: brightness(.55);
+}
+
+#mg-bottom.mg-deciding {
+    max-height: 70vh;
+    max-height: 70dvh;
+    overflow-y: auto;
+}
+
+.mg-decision-text {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+/* The cards to choose from, and the hand while it takes part in a decision (phones) */
+.mg-strip {
+    --card-h: 92px;
+    padding: 4px 0 6px;
+}
+
+.mg-inline-hand-box .mg-zone-label {
+    margin: 4px 0 0;
+}
+
+.mg-choice-label {
+    width: calc(var(--card-h) * 0.714);
+    font-size: 11px;
+    line-height: 1.2;
+    color: var(--muted);
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.mg-strip .mg-choice-label {
+    --card-h: 92px;
+}
+
+.mg-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 8px;
+}
+
+.mg-controls .mg-button {
+    flex: 1 1 auto;
+    min-height: 46px;
+    font-size: 15px;
+}
+
+.mg-button.mg-primary {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1a1408;
+    font-weight: 700;
+}
+
+.mg-button:disabled {
+    opacity: .45;
+    cursor: default;
+}
+
+.mg-stepper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.mg-controls .mg-stepper .mg-button {
+    flex: none;
+    min-width: 52px;
+    font-size: 22px;
+}
+
+.mg-stepper-value {
+    min-width: 44px;
+    text-align: center;
+    font-size: 24px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
 /* ---- Game log ---- */
 
 .mg-log {
@@ -1007,6 +1134,23 @@ button, a.mg-button {
         max-height: 22vh;
     }
 
+    #mg-bottom.mg-deciding {
+        display: block;
+        max-height: 62vh;
+    }
+
+    #mg-bottom.mg-deciding .mg-decision {
+        margin-bottom: 4px;
+    }
+
+    .mg-strip, .mg-strip .mg-choice-label {
+        --card-h: 70px;
+    }
+
+    .mg-controls .mg-button {
+        min-height: 38px;
+    }
+
     .mg-buttons {
         flex-wrap: nowrap;
     }
@@ -1069,6 +1213,14 @@ button, a.mg-button {
 
     .mg-hand-button {
         display: none;
+    }
+
+    .mg-inline-hand-box {
+        display: none;
+    }
+
+    .mg-strip, .mg-strip .mg-choice-label {
+        --card-h: 120px;
     }
 
     .mg-sheet-panel {
