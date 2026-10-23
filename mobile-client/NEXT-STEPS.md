@@ -67,7 +67,7 @@ Afterwards, ask Claude Code to add your findings to `mobile-client/REMARKS.md` a
 ## 4. Decisions waiting for you
 
 1. **The desktop auto-pass bug.** The desktop's "auto-pass" setting has no effect today: it's saved in a way the server never receives. The fix is one line, but every desktop player would then get the phases they ticked instead of the server's default. The mobile version already works correctly. Fix the desktop too?
-2. **Who puts it on the real server?** The real Gemp (play.lotrtcgpc.net) seems to be maintained by the Player's Council. To reach players, this work has to go to whoever deploys it, probably as a pull request to their repository. Is that you, or someone you'd send it to?
+2. **The real server: later.** You don't know yet who runs play.lotrtcgpc.net, and for now you'll test on your own computer (decided). Once the mobile version works well on your phone, find out who deploys the real server (the code credits the Player's Council), so the work can be offered to them.
 3. **What comes after the phone test?** Options from the plan:
    - fixes and polish from your phone test (recommended first)
    - drag and drop

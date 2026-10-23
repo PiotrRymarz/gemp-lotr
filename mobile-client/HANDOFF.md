@@ -22,6 +22,7 @@ push after each meaningful step (he relies on GitHub to keep the work).
 - The **game hall** gets a mobile version too (Phase 4). Its layout is sketched in PLAN.md, section 3.
 - Test server: develop against a **local server in the cloud session**. A public HTTPS server only when Piotr wants to try it on his phone (options in PLAN.md, section 7). He has none yet.
 - Piotr agreed to use **high** reasoning effort for Phases 1–2.
+- **Testing happens on Piotr's own computer** (Docker plus a Cloudflare tunnel to his phone; see LOCAL-SETUP.md). He doesn't know who runs the real server (play.lotrtcgpc.net), so deploying there waits until the phone tests go well.
 
 ## Status
 

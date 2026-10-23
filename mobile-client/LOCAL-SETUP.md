@@ -95,4 +95,4 @@ findings to `mobile-client/REMARKS.md` under a new heading "Phone test findings"
 
 - **Chat in the cloud sandbox** often lost messages while a game page was open, on the desktop game page too. Check whether chat works reliably on this computer's server and on the real one.
 - **The desktop auto-pass setting has no effect** (its cookie never reaches the server; details in HANDOFF.md). The mobile settings work around it. Fixing the desktop is Piotr's decision.
-- **Production:** it isn't known yet who deploys the real server (play.lotrtcgpc.net). The code says it's maintained by the Player's Council; ask Piotr. Getting this work there is his decision. Don't push anywhere other than `trymarz/gemp-lotr-private`.
+- **Production:** Piotr doesn't know who deploys the real server (play.lotrtcgpc.net). The code credits the Player's Council. For now everything is tested on his computer, and deploying waits until the phone tests go well. Don't push anywhere other than `trymarz/gemp-lotr-private`.

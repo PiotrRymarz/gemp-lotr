@@ -70,6 +70,8 @@ What makes this hard on a phone:
 - **Switching views:** phones and tablets open the mobile screens automatically, with an option to go back to the standard view.
 - **Game hall:** the hall screen also needs a mobile PWA version (see the "Game hall screen" section above).
 
+- **Test server:** testing happens on Piotr's own computer for now. He doesn't know who runs the real server (play.lotrtcgpc.net).
+
 ## Open questions
 
 - Test server: local in the cloud environment for development; a public HTTPS server for testing on a real phone (see PLAN.md, section 7).
