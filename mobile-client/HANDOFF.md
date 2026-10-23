@@ -39,6 +39,10 @@ push after each meaningful step (he relies on GitHub to keep the work).
 
 ## Next step
 
+**On Piotr's computer:** follow [LOCAL-SETUP.md](LOCAL-SETUP.md) (Docker, a Cloudflare tunnel, the phone checklist in
+[NEXT-STEPS.md](NEXT-STEPS.md)). **In a cloud session:** the sandbox can't reach a phone, so work on fixes he reports, or on
+Phase 5.
+
 The four main phases are done. Before more features, the most useful step is **testing on real devices**:
 
 - Real card images (blocked in the cloud sandbox), real touch, real Android browsers, and installing the PWA.
