@@ -40,13 +40,31 @@
         return value == null || value == "null" ? null : value;
     }
 
+    // Clearer wording for server texts that confuse new players. The server's own texts stay as they are: the desktop
+    // and the bots use them.
+    function questionText(decision, state) {
+        var text = decision.text || "";
+        if (text.indexOf("Starting fellowship - Choose next character") == 0) {
+            // Only the Ring-bearer in play means no companion was chosen yet
+            var characters = 0;
+            for (var id in state.cards) {
+                var card = state.cards[id];
+                if (card.zone == "FREE_CHARACTERS" && card.owner == state.me)
+                    characters++;
+            }
+            return characters <= 1 ? "Choose first companion to your starting fellowship"
+                : "Choose next companion to your starting fellowship, or press Done";
+        }
+        return text;
+    }
+
     // ---- Base ----
 
     function Decision(decision, state, send, options) {
         this.autoAccept = !!(options && options.autoAccept);
         this.id = decision.id;
         this.type = decision.type;
-        this.text = decision.text || "";
+        this.text = questionText(decision, state);
         this.decision = decision;
         this.state = state;
         this.send = send;

@@ -476,10 +476,46 @@ var MobileHall = (function () {
         var privateBox = h("input", {type: "checkbox"});
         var result = h("div", {class: "mh-result"});
 
+        // Invite only: only the named player can join. By the hall's convention the table's note is their name.
+        var inviteBox = h("input", {type: "checkbox"});
+        var invitee = h("input", {type: "text", class: "mg-chat-input", maxlength: "100", placeholder: "Player's name",
+            list: "mh-invitees", autocomplete: "off", autocapitalize: "none", spellcheck: "false", disabled: true});
+        var suggestions = h("datalist", {id: "mh-invitees"});
+        var inviteField = h("label", {class: "mh-field", hidden: true}, ["Player to invite", invitee, suggestions,
+            h("div", {class: "mg-note", text: "Type at least two letters to see matching players."})]);
+        inviteBox.addEventListener("change", function () {
+            invitee.disabled = !inviteBox.checked;
+            inviteField.hidden = !inviteBox.checked;
+            description.disabled = inviteBox.checked;
+            if (inviteBox.checked)
+                invitee.focus();
+        });
+        invitee.addEventListener("input", function () {
+            var prefix = invitee.value.trim();
+            if (prefix.length < 2)
+                return;
+            that.comm.searchHallPlayers(prefix, 10, function (json) {
+                if (invitee.value.trim() != prefix)
+                    return;
+                clear(suggestions);
+                ((json && json.players) || []).forEach(function (name) {
+                    suggestions.appendChild(h("option", {value: name}));
+                });
+            }, {});
+        });
+
         var create = function () {
             var deck = that.selectedDeck(deckSelect);
             if (!deck)
                 return that.showResult(result, "Choose a deck first.", true);
+            var note = description.value.trim();
+            if (inviteBox.checked) {
+                note = invitee.value.trim();
+                if (note == "")
+                    return that.showResult(result, "Type the name of the player to invite.", true);
+                if (that.playerName && note.toLowerCase() == that.playerName.toLowerCase())
+                    return that.showResult(result, "You can't invite yourself. Name another player.", true);
+            }
             remember("format", formatSelect.value);
             remember("deck", deckSelect.value);
             remember("timer", timerSelect.value);
@@ -490,8 +526,8 @@ var MobileHall = (function () {
             }, function (message) {
                 that.showResult(result, message, true);
             });
-            that.comm.createTable(formatSelect.value, deck.name, timerSelect.value || "default", description.value.trim(),
-                privateBox.checked, false, r.callback, r.errorMap, deck.source);
+            that.comm.createTable(formatSelect.value, deck.name, timerSelect.value || "default", note,
+                privateBox.checked, inviteBox.checked, r.callback, r.errorMap, deck.source);
         };
 
         var botDeckSelect = this.deckSelect(recall("botDeck"), "Fellowship Block");
@@ -518,6 +554,8 @@ var MobileHall = (function () {
             h("label", {class: "mh-field"}, ["Timer", timerSelect, timerNote]),
             h("label", {class: "mh-field"}, ["Note", description]),
             h("label", {class: "mg-toggle"}, [privateBox, h("span", {}, ["Private", h("small", {text: "Others can't watch your game."})])]),
+            h("label", {class: "mg-toggle"}, [inviteBox, h("span", {}, ["Invite only", h("small", {text: "Only the player you name can join."})])]),
+            inviteField,
             h("button", {type: "button", class: "mg-button mg-primary mh-wide", onclick: create, text: "Create table"}),
             result
         ]));

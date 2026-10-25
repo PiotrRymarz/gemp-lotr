@@ -184,9 +184,10 @@ var MobileRenderer = (function () {
         });
         root.addEventListener("pointerup", cancel);
         root.addEventListener("pointercancel", cancel);
-        // No browser menu on a long-pressed card image
+        // No browser menu (save image, share) on a long-pressed card image. The phone opens it a moment after the
+        // card opened, so by then the finger is usually on the big card in the sheet.
         root.addEventListener("contextmenu", function (e) {
-            if (e.target.closest(".mg-card"))
+            if (e.target.closest(".mg-card, .mg-big-card"))
                 e.preventDefault();
         });
     };

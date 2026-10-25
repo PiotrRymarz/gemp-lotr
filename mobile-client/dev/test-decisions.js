@@ -132,6 +132,19 @@ test("ARBITRARY_CARDS: a reveal with nothing to pick shows just OK", () => {
     assert.deepEqual(sent, [""]);
 });
 
+test("ARBITRARY_CARDS: the starting fellowship asks for the first companion, then the next", () => {
+    const text = "Starting fellowship - Choose next character or press DONE";
+    const params = {min: "0", max: "1", cardId: ["40"], blueprintId: ["1_50"], selectable: ["true"], testingText: ["null"]};
+    const state = new GameState();
+    state.apply(ev("P", {participantId: "me", allParticipantIds: "opp,me"}));
+    state.apply(ev("PCIP", {cardId: "1", blueprintId: "1_290", zone: "FREE_CHARACTERS", participantId: "me"}));
+    state.apply(ev("PCIP", {cardId: "9", blueprintId: "1_290", zone: "FREE_CHARACTERS", participantId: "opp"}));
+    assert.equal(make(state, decision("ARBITRARY_CARDS", params, text)).d.text, "Choose first companion to your starting fellowship");
+    state.apply(ev("PCIP", {cardId: "2", blueprintId: "1_97", zone: "FREE_CHARACTERS", participantId: "me"}));
+    assert.equal(make(state, decision("ARBITRARY_CARDS", params, text)).d.text, "Choose next companion to your starting fellowship, or press Done");
+    assert.equal(make(state, decision("ARBITRARY_CARDS", params, "Choose cards")).d.text, "Choose cards");
+});
+
 test("ACTION_CHOICE: pick one action shown as a card, Done sends its action id", () => {
     const {d, sent} = make(table(), decision("ACTION_CHOICE", {
         blueprintId: ["1_2", "1_3"], actionId: ["7", "8"], actionText: ["Wear the ring", "Heal"]

@@ -1175,6 +1175,8 @@ button, a.mg-button {
     border-radius: 12px;
     overflow: hidden;
     background: #26221d;
+    -webkit-touch-callout: none;
+    user-select: none;
 }
 
 .mg-big-card.mg-horizontal {

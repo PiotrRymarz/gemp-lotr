@@ -72,6 +72,14 @@ What makes this hard on a phone:
 
 - **Test server:** testing happens on Piotr's own computer for now. He doesn't know who runs the real server (play.lotrtcgpc.net).
 
+## Phone test findings
+
+First test on Piotr's Android phone, against the Docker server on his computer (2026-10-25).
+
+1. **Starting fellowship text is unclear.** "Starting fellowship - Choose next character or press DONE" is confusing. Wanted: "Choose first companion to your starting fellowship". *Fixed* on the mobile page only (the server text stays, because the desktop and the bots use it): the first pick says that, later ones say "Choose next companion to your starting fellowship, or press Done".
+2. **Can't invite a player from the phone.** *Fixed:* the mobile hall's "Create a table" has "Invite only" and a name field with suggestions from the server's player search, as on the desktop.
+3. **Long press on a card also opens the phone's "download image" menu.** He only wants to see the card; any next action should need another tap. *Fixed:* the card opens before the phone's own long-press menu appears, when the finger is already on the big card in the sheet; that menu is now blocked there too.
+
 ## Open questions
 
 - Test server: local in the cloud environment for development; a public HTTPS server for testing on a real phone (see PLAN.md, section 7).

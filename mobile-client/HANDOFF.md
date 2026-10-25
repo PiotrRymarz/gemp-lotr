@@ -31,6 +31,7 @@ push after each meaningful step (he relies on GitHub to keep the work).
 - ✅ **Phase 2**: playing from the phone. All 7 decision types (`decisions.js`), tap to select, long press for details. Tested with whole games played through the mobile page (`dev/mobile-player.js`).
 - ✅ **Phase 3**: the rest of the game screen. Chat, menu (concede, cancel), settings (shared with the desktop through cookies), clocks counting down, your-move signals, game-over screen, reconnecting. Details in PLAN.md.
 - ✅ **Phase 4**: getting into games from a phone. Automatic switch to the mobile pages (`mobileView.js`), mobile game hall (`hall-mobile.html`), phone-friendly login. Details in PLAN.md.
+- 🔄 **Phone testing** started on 2026-10-25 on Piotr's computer (Docker plus a Cloudflare tunnel). His first three findings are fixed; see "Phone test findings" in REMARKS.md.
 - ⏭ **Next:** trying it on a real phone (it needs a server with HTTPS; see PLAN.md section 7), then Phase 5 (polish, tablet extras, deck builder, Play Store). **Ask Piotr which he wants first.**
 
 ## Things to tell Piotr about (found along the way, not changed)

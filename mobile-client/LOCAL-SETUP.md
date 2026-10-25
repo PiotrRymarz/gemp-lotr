@@ -39,8 +39,14 @@ containers: MariaDB with the Gemp database and the test users, and the Java serv
 2. **Before the first start:** create the log file the setup expects. Otherwise Docker creates a *folder* with that name:
    - Linux/macOS: `touch logs/nohup.out`
    - Windows PowerShell: `New-Item logs/nohup.out -ItemType File`
+
+   With Docker Desktop (found on Piotr's Linux computer), also create an empty `gemp-lotr/nohup.out` (`touch gemp-lotr/nohup.out`). The log is mounted at that spot inside another shared folder, and without the file the app container won't start ("mountpoint ... is outside of rootfs").
 3. **Start the containers:** `cd gemp-lotr/docker`, then `docker compose up -d`. The first time takes several minutes.
-4. **Build the server once** (the app container runs `gemp-lotr-async/target/web.jar`, which doesn't exist yet). Either:
+4. **Build the server once** (the app container runs `gemp-lotr-async/target/web.jar`, which doesn't exist yet). On Piotr's computer neither way below worked (the app container keeps restarting until the jar exists, and there's no Maven), so build in a one-off container from the same image instead, run in the repository root:
+   ```bash
+   docker run --rm -v "$PWD/gemp-lotr:/etc/gemp-lotr" -v gemp_m2:/root/.m2 -w /etc/gemp-lotr gemp_app mvn -q -B install -DskipTests
+   ```
+   (`gemp_m2` keeps Maven's downloads for the next build.) Otherwise, either:
    - **inside the container**, as `docker/readme.md` describes: `docker exec -it gemp_app_1 bash`, then `cd /etc/gemp-lotr` and `mvn install -DskipTests` (5–10 minutes), then `exit`; or
    - **on the computer itself**, if it has Java 21 and Maven 3.9: run `mvn install -DskipTests` in `gemp-lotr/`. The folder is shared with the container, so the container sees the result.
 
@@ -64,7 +70,7 @@ The simplest free option is a **Cloudflare quick tunnel**: no account, no router
    - Windows: `winget install --id Cloudflare.cloudflared`
    - macOS: `brew install cloudflared`
    - Linux: see Cloudflare's docs
-2. Run `cloudflared tunnel --url http://localhost:17001` and keep it running. It prints an address like `https://something-random.trycloudflare.com`.
+2. Run `cloudflared tunnel --url http://localhost:17001` and keep it running. On Piotr's computer it's at `~/.local/bin/cloudflared`. The agent's permissions don't allow it to open the tunnel, so Piotr starts it himself (`! ~/.local/bin/cloudflared tunnel --url http://localhost:17001` in the prompt, or in a terminal). It prints an address like `https://something-random.trycloudflare.com`.
 3. On the phone, open **`https://something-random.trycloudflare.com/gemp-lotr/`**. Don't forget `/gemp-lotr/` at the end.
 
 The address changes each time the tunnel starts, and it only works while the computer and the tunnel are on. That's
