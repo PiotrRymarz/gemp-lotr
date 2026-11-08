@@ -10,7 +10,9 @@ describe('PackDeliveryService', () => {
   let backend: HttpTestingController;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), PackDeliveryService],
+    });
     backend = TestBed.inject(HttpTestingController);
   });
 

@@ -1,4 +1,4 @@
-import { CardBox } from '../../shared/card/card-hover';
+import { CardBox } from '../card/card-hover';
 
 /** The remastered card size (CardDisplay.TargetLong / TargetShort). */
 export const TARGET_LONG = 1039;

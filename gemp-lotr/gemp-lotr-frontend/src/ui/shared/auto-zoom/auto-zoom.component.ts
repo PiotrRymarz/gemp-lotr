@@ -6,7 +6,7 @@ import { CardImageService } from '../../../core/cards/card-image.service';
 import { CardInfoService } from '../../../core/cards/card-info.service';
 import { zoneOf } from '../../../core/cards/card-ref';
 import { AutoZoomSetting } from '../../../core/platform/auto-zoom-setting';
-import { CardHover, HoveredCard } from '../../shared/card/card-hover';
+import { CardHover, HoveredCard } from '../card/card-hover';
 import { zoomPlacement } from './zoom-placement';
 
 /** The mouse has to rest this long on a card before its zoom shows (AutoZoom.HoverDelay). */

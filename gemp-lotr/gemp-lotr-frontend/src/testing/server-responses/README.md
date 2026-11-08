@@ -7,3 +7,5 @@
   `collection-with-packs.xml` (CollectionRequestHandler.getCollection), `collection-types.xml`
   (CollectionRequestHandler.getCollectionTypes), `leagues.xml` (LeagueRequestHandler, league list) and
   `pack-delivery.xml` (DeliveryRequestHandler.serializeCollectionsAsXML).
+- `player.json`: GET /player (PlayerInfoRequestHandler, `Player.GetUserInfo` serialized by `JsonUtils.Serialize`),
+  written by hand from the server code, for a player with trophies.

@@ -1,7 +1,7 @@
 /*
  * The classic theme: the legacy deck builder's look (deckBuild.html: jquery.layout panes, the jQuery UI "dark-hive"
  * widgets, the legacy card layers). This is the theme's base, built into theme-classic.css, which ThemeService loads
- * on every page: the page-independent rules (the widget look, the card, the card information, the dialogs and the
+ * on every page: the page-independent rules (the widget look, the card, the card information, the hover zoom, the dialogs and the
  * notifier). Each page's own rules are in <page>.css (theme-classic-<page>.css), loaded after this. Only one theme's
  * stylesheets are on the page at a time, so rules need no theme scope. Images are in public/themes/classic/ (served
  * next to the app, so referenced by their absolute address): the jQuery UI 1.8.16 "dark-hive" theme images (MIT
@@ -516,6 +516,48 @@ div {
   .gd-card-info__zoom {
     display: none;
   }
+}
+
+/* ---------------------------------------------------------------- hover zoom (AutoZoom, #previewImage) */
+
+.gd-zoom {
+  --long: max(var(--gd-zoom-width), var(--gd-zoom-height));
+  position: fixed;
+  left: var(--gd-zoom-left);
+  top: var(--gd-zoom-top);
+  z-index: 1099;
+  width: var(--gd-zoom-width);
+  height: var(--gd-zoom-height);
+  pointer-events: none;
+}
+
+.gd-zoom > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 5%;
+}
+
+.gd-zoom__foil {
+  opacity: 0.2;
+}
+
+.gd-zoom > .gd-zoom__overlay {
+  top: auto;
+  height: 27%;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: bottom;
+}
+
+/* CardDisplay's border: a 28th of the long side, 2px larger than the card */
+.gd-zoom::after {
+  content: '';
+  position: absolute;
+  inset: 0 -2px -2px 0;
+  border: round(down, calc(var(--long) / 28), 1px) solid #000;
+  border-radius: 5%;
 }
 
 /* ---------------------------------------------------------------- dialogs (jQuery UI dialog, dark-hive) */

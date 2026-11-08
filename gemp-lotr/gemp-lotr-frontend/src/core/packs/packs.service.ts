@@ -20,7 +20,7 @@ export interface ShownCard {
  * Opening packs from the collection (deckBuildingUi.clickCardFunction), the "Choose one" dialog of selection packs,
  * and the "New items - <collection>" dialogs showing what was opened (deckbuilderDeliveryService.js).
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PacksService {
   private readonly api = inject(DeckbuilderApi);
   private readonly collection = inject(CollectionService);

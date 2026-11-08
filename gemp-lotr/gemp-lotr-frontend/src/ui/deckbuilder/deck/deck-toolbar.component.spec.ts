@@ -1,3 +1,4 @@
+import { DECKBUILDER_SERVICES } from '../../../core/actions/deckbuilder-services';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -19,6 +20,7 @@ describe('DeckToolbarComponent', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideFakeNotifier(),
+        ...DECKBUILDER_SERVICES,
         { provide: PAGE_QUERY_STRING, useValue: '' },
       ],
     });

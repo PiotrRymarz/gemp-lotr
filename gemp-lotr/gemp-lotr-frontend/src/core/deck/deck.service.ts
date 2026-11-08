@@ -59,7 +59,7 @@ export interface RaceCard {
  * format list (with Map and Race slots), the deck stats, unsaved-changes tracking with its prompts, and the New, Save,
  * Rename, Copy and Convert to PC Errata buttons. Messages and questions go through the Notifier.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DeckService {
   private readonly api = inject(DeckbuilderApi);
   private readonly collection = inject(CollectionService);

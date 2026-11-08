@@ -10,7 +10,7 @@ import { PacksService } from '../packs/packs.service';
  *    selection pack's choice is taken. Copies behind a card and the Race card do nothing;
  *  - asking for details shows the card information.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class DeckbuilderActions {
   private readonly deck = inject(DeckService);
   private readonly packs = inject(PacksService);

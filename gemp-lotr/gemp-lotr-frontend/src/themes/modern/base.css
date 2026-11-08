@@ -1,7 +1,7 @@
 /*
  * The modern theme: a flat, contemporary look, the default on phones and tablets. This is the theme's base, built into
  * theme-modern.css, which ThemeService loads on every page: the tokens (tokens.css), the shared controls (buttons,
- * fields, sliders), the card, the dialogs, the notifier and the card information. Each page's own rules are in
+ * fields, sliders), the card, the dialogs, the notifier, the card information and the hover zoom. Each page's own rules are in
  * <page>.css (theme-modern-<page>.css), loaded after this. Only one theme's stylesheets are on the page at a time, so
  * rules need no theme scope. Images and other assets go in public/themes/modern/ (none so far: the icons are inline SVG
  * masks below).
@@ -741,6 +741,49 @@ input[type='range']:disabled {
   .gd-card-info__zoom {
     display: none;
   }
+}
+
+/* ---------------------------------------------------------------- hover zoom */
+
+.gd-zoom {
+  position: fixed;
+  left: var(--gd-zoom-left);
+  top: var(--gd-zoom-top);
+  z-index: 1099;
+  width: var(--gd-zoom-width);
+  height: var(--gd-zoom-height);
+  border-radius: 4.5%;
+  box-shadow: var(--m-shadow-lg);
+  pointer-events: none;
+}
+
+.gd-zoom > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.gd-zoom__foil {
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+.gd-zoom > .gd-zoom__overlay {
+  top: auto;
+  height: 27%;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: bottom;
+}
+
+.gd-zoom::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: round(down, calc(max(var(--gd-zoom-width), var(--gd-zoom-height)) / 34), 1px) solid #0b0c0f;
+  border-radius: inherit;
 }
 
 /* ---------------------------------------------------------------- phones */

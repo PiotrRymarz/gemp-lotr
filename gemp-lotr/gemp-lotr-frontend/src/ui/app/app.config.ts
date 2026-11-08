@@ -13,8 +13,8 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(),
     provideRouter(APP_ROUTES),
-    // Messages and questions are shown by the page's gd-notifier. App-wide, not in a route: the core services that
-    // ask (DeckService, PacksService, ...) are providedIn root, and the root injector doesn't see a route's providers
+    // Messages and questions, shown by the page's gd-notifier. App-wide, so every page's services (in its route's
+    // providers) and the shared root services can ask, through the one queue
     DialogNotifier,
     { provide: Notifier, useExisting: DialogNotifier },
     // Nothing is drawn until the theme's base stylesheet has loaded, so the page never shows unstyled

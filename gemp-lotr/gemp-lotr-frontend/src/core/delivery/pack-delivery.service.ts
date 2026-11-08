@@ -12,7 +12,7 @@ import { parsePackDelivery } from '../api/parsers';
  * shows the popup (Phase 6) injects it. From then on it fetches whenever a response announces new contents, and the
  * UI should call fetch() once on start, as the legacy page did (forcePackDelivery).
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class PackDeliveryService {
   private readonly http = inject(GempHttp);
   private readonly deliveries = new Subject<PackDelivery[]>();

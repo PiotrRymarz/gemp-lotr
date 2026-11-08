@@ -19,6 +19,7 @@ describe('DeckbuilderActions', () => {
     packs = { packClicked: vi.fn(), choose: vi.fn() };
     TestBed.configureTestingModule({
       providers: [
+        DeckbuilderActions,
         { provide: DeckService, useValue: deck },
         { provide: PacksService, useValue: packs },
       ],

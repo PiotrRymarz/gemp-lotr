@@ -1,3 +1,4 @@
+import { DECKBUILDER_SERVICES } from '../actions/deckbuilder-services';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting, TestRequest } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
@@ -16,6 +17,7 @@ describe('PacksService', () => {
         provideHttpClient(),
         provideHttpClientTesting(),
         provideFakeNotifier(),
+        ...DECKBUILDER_SERVICES,
         { provide: PAGE_QUERY_STRING, useValue: '' },
       ],
     });

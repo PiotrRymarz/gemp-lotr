@@ -59,7 +59,7 @@ interface CollectionRequest {
  * dragged) are dropped instead of possibly arriving last and replacing the newer page. And a new page appears all at
  * once when its card images have loaded, instead of card by card as each image arrives.
  */
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class CollectionService {
   private readonly api = inject(DeckbuilderApi);
   private readonly images = inject(CardImageService);

@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
 import { loadThemePage } from './theme-pages';
 
 /**
@@ -6,6 +7,7 @@ import { loadThemePage } from './theme-pages';
  * server answers every such address with the app's index.html (WebRequestHandler), so a page can be reloaded or
  * linked to directly. A route with theme CSS of its own names its page in `data.page` (a bundle
  * `theme-<theme>-<page>.css` per theme, see ThemeService) and waits for it with `resolve: { themePage: loadThemePage }`.
+ * A page's own services (its state) go in its route's `providers`, so they belong to the page, not the app.
  */
 export const APP_ROUTES: Routes = [
   {
@@ -13,6 +15,7 @@ export const APP_ROUTES: Routes = [
     title: 'GEMP: LotR-TCG - Deckbuilder',
     data: { page: 'deckbuilder' },
     resolve: { themePage: loadThemePage },
+    providers: DECKBUILDER_SERVICES,
     loadComponent: () => import('../deckbuilder/deckbuilder-page.component').then((m) => m.DeckbuilderPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
