@@ -1,0 +1,101 @@
+/*
+ * The modern theme's design tokens, shared by every page (imported by base.css): the type, spacing, radii, the light
+ * and dark palettes, shadows, the touch target size and the safe-area insets.
+ */
+
+:root {
+  color-scheme: dark;
+
+  --m-font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --m-font-size: 14px;
+  --m-font-size-sm: 12px;
+  --m-font-size-xs: 11px;
+
+  --m-space-1: 4px;
+  --m-space-2: 8px;
+  --m-space-3: 12px;
+  --m-space-4: 16px;
+  --m-space-5: 24px;
+
+  --m-radius-sm: 6px;
+  --m-radius: 10px;
+  --m-radius-lg: 14px;
+  --m-radius-pill: 999px;
+
+  --m-control-height: 32px;
+  --m-transition: 140ms cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  /* Dark palette (the default) */
+  --m-bg: #0e1015;
+  --m-surface: #161920;
+  --m-surface-2: #1d2129;
+  --m-surface-3: #262b35;
+  --m-well: #0b0d11;
+  --m-border: #2a2f3a;
+  --m-border-strong: #3a4150;
+  --m-text: #e7e9ee;
+  --m-text-muted: #9aa2b1;
+  --m-text-faint: #6c7484;
+  --m-accent: #6e8bff;
+  --m-accent-hover: #869dff;
+  --m-accent-soft: rgb(110 139 255 / 0.16);
+  --m-on-accent: #fff;
+  --m-danger: #ff6b6b;
+  --m-success: #3ecf8e;
+  --m-warning: #f2c14e;
+  --m-modified: #f5a524;
+  --m-focus: #8fa6ff;
+  --m-backdrop: rgb(6 8 12 / 0.6);
+  --m-shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+  --m-shadow: 0 2px 6px rgb(0 0 0 / 0.35), 0 1px 2px rgb(0 0 0 / 0.3);
+  --m-shadow-lg: 0 18px 48px rgb(0 0 0 / 0.55), 0 4px 12px rgb(0 0 0 / 0.35);
+  --m-card-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
+  --m-card-shadow-hover: 0 10px 22px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
+  --m-culture-icon-filter: invert(1) brightness(0.95);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --m-bg: #eef0f4;
+    --m-surface: #ffffff;
+    --m-surface-2: #f4f5f8;
+    --m-surface-3: #e7eaf0;
+    --m-well: #e3e6ec;
+    --m-border: #d8dce4;
+    --m-border-strong: #c3c9d4;
+    --m-text: #1b1f2a;
+    --m-text-muted: #5b6373;
+    --m-text-faint: #8a92a1;
+    --m-accent: #3b5bdb;
+    --m-accent-hover: #2f4cc4;
+    --m-accent-soft: rgb(59 91 219 / 0.12);
+    --m-danger: #d63a3a;
+    --m-success: #1f9d63;
+    --m-warning: #a86b00;
+    --m-modified: #c26a00;
+    --m-focus: #3b5bdb;
+    --m-backdrop: rgb(20 24 34 / 0.35);
+    --m-shadow-sm: 0 1px 2px rgb(16 24 40 / 0.08);
+    --m-shadow: 0 2px 6px rgb(16 24 40 / 0.08), 0 1px 2px rgb(16 24 40 / 0.06);
+    --m-shadow-lg: 0 18px 48px rgb(16 24 40 / 0.2), 0 4px 12px rgb(16 24 40 / 0.1);
+    --m-card-shadow: 0 1px 3px rgb(16 24 40 / 0.3);
+    --m-card-shadow-hover: 0 10px 22px rgb(16 24 40 / 0.3), 0 2px 6px rgb(16 24 40 / 0.2);
+    --m-culture-icon-filter: none;
+  }
+}
+
+/* Touch screens: 44px controls */
+@media (pointer: coarse) {
+  :root {
+    --m-control-height: 44px;
+  }
+}
+
+/* The safe-area insets (the theme's viewport has viewport-fit=cover) */
+:root {
+  --m-safe-top: env(safe-area-inset-top);
+  --m-safe-right: env(safe-area-inset-right);
+  --m-safe-bottom: env(safe-area-inset-bottom);
+  --m-safe-left: env(safe-area-inset-left);
+}

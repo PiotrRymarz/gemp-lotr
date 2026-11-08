@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { PAGE_QUERY_STRING } from './page-location';
 import {
   isMobileDevice,
+  LEGACY_THEME_COOKIE,
   resolveTheme,
   THEME_ATTRIBUTE,
   THEME_COOKIE,
@@ -38,8 +39,10 @@ function fakeDevice(coarsePointer: boolean, width: number, height: number): void
 }
 
 const themeLinks = () => Array.from(document.head.querySelectorAll<HTMLLinkElement>(`link[${THEME_LINK_ATTRIBUTE}]`));
-const loadLink = (theme: string, event = 'load') =>
-  document.head.querySelector(`link[${THEME_LINK_ATTRIBUTE}="${theme}"]`)!.dispatchEvent(new Event(event));
+const linked = () => themeLinks().map((link) => link.getAttribute(THEME_LINK_ATTRIBUTE));
+/** Fires the load (or error) of the link of a bundle: `classic`, `classic-deckbuilder`, ... */
+const loadLink = (bundle: string, event = 'load') =>
+  document.head.querySelector(`link[${THEME_LINK_ATTRIBUTE}="${bundle}"]`)!.dispatchEvent(new Event(event));
 
 /** Whether a promise has settled, without waiting for it. */
 async function settled(promise: Promise<unknown>): Promise<boolean> {
@@ -150,6 +153,27 @@ describe('ThemeService', () => {
       expect(themes.theme()).toBe('modern');
       expect(jar.get(THEME_COOKIE)).toBe('modern');
       expect(written[0]).toMatch(new RegExp(`^${THEME_COOKIE}=modern; expires=.*; path=/gemp-lotr$`));
+    });
+
+    it('reads the earlier deckbuilderTheme cookie when there is no gempTheme cookie', async () => {
+      const { written } = fakeCookies({ [LEGACY_THEME_COOKIE]: 'modern' });
+      expect(THEME_COOKIE).toBe('gempTheme');
+      const themes = service();
+      const starting = themes.init();
+      loadLink('modern');
+      await starting;
+      expect(themes.theme()).toBe('modern');
+      expect(written).toEqual([]);
+    });
+
+    it('prefers the gempTheme cookie to the earlier deckbuilderTheme one', async () => {
+      fakeCookies({ [LEGACY_THEME_COOKIE]: 'modern', [THEME_COOKIE]: 'classic' });
+      fakeDevice(true, 390, 844);
+      const themes = service();
+      const starting = themes.init();
+      loadLink('classic');
+      await starting;
+      expect(themes.theme()).toBe('classic');
     });
 
     it('ignores, and does not remember, an unknown ?theme= or cookie value', async () => {
@@ -269,6 +293,103 @@ describe('ThemeService', () => {
       expect(themes.theme()).toBe('classic');
       expect(themeLinks()).toHaveLength(1);
       expect(document.cookie).toBe(before);
+    });
+  });
+
+  describe('pages', () => {
+    async function started(): Promise<ThemeService> {
+      fakeCookies();
+      const themes = service();
+      const starting = themes.init();
+      loadLink('classic');
+      await starting;
+      return themes;
+    }
+
+    async function onPage(themes: ThemeService, page: string): Promise<void> {
+      const loading = themes.loadPage(page);
+      loadLink(`${themes.theme()}-${page}`);
+      await loading;
+      await themes.setPage(page);
+    }
+
+    it("loads only the theme's base at start", async () => {
+      await started();
+      expect(linked()).toEqual(['classic']);
+    });
+
+    it("waits for the page's stylesheet, linked after the base, and keeps the ones in use meanwhile", async () => {
+      const themes = await started();
+      const loading = themes.loadPage('deckbuilder');
+      expect(linked()).toEqual(['classic', 'classic-deckbuilder']);
+      expect(await settled(loading)).toBe(false);
+      loadLink('classic-deckbuilder');
+      expect(await settled(loading)).toBe(true);
+      expect(themeLinks()[1].href).toMatch(/\/theme-classic-deckbuilder\.css$/);
+    });
+
+    it('does not load a page stylesheet twice', async () => {
+      const themes = await started();
+      await onPage(themes, 'deckbuilder');
+      const links = themeLinks();
+      await themes.loadPage('deckbuilder');
+      await themes.setPage('deckbuilder');
+      expect(themeLinks()).toEqual(links);
+    });
+
+    it("drops a page's stylesheet once another page is shown, keeping the base", async () => {
+      const themes = await started();
+      await onPage(themes, 'deckbuilder');
+      const [base] = themeLinks();
+      await themes.setPage(null);
+      expect(themeLinks()).toEqual([base]);
+    });
+
+    it('ignores unknown pages: only the base is kept', async () => {
+      const themes = await started();
+      await onPage(themes, 'deckbuilder');
+      await themes.loadPage('no-such-page');
+      expect(linked()).toEqual(['classic', 'classic-deckbuilder']);
+      await themes.setPage('no-such-page');
+      expect(linked()).toEqual(['classic']);
+    });
+
+    it("switches theme with the page's stylesheet: both new ones load before the old ones are removed", async () => {
+      const themes = await started();
+      await onPage(themes, 'deckbuilder');
+      const switching = themes.select('modern');
+      expect(linked()).toEqual(['classic', 'classic-deckbuilder', 'modern', 'modern-deckbuilder']);
+      loadLink('modern');
+      expect(await settled(switching)).toBe(false);
+      expect(themes.theme()).toBe('classic');
+      loadLink('modern-deckbuilder');
+      await switching;
+      expect(linked()).toEqual(['modern', 'modern-deckbuilder']);
+      expect(themes.theme()).toBe('modern');
+      expect(document.documentElement.getAttribute(THEME_ATTRIBUTE)).toBe('modern');
+    });
+
+    it("loads the next page in the theme being switched to, and doesn't undo the switch", async () => {
+      const themes = await started();
+      const switching = themes.select('modern');
+      const loading = themes.loadPage('deckbuilder');
+      expect(linked()).toEqual(['classic', 'modern', 'modern-deckbuilder']);
+      const showing = themes.setPage('deckbuilder');
+      loadLink('modern');
+      loadLink('modern-deckbuilder');
+      await Promise.all([switching, loading, showing]);
+      expect(linked()).toEqual(['modern', 'modern-deckbuilder']);
+      expect(themes.theme()).toBe('modern');
+    });
+
+    it("puts a theme's base before its page's stylesheet", async () => {
+      const themes = await started();
+      await onPage(themes, 'deckbuilder');
+      themeLinks()[0].remove();
+      const showing = themes.setPage('deckbuilder');
+      loadLink('classic');
+      await showing;
+      expect(linked()).toEqual(['classic', 'classic-deckbuilder']);
     });
   });
 });

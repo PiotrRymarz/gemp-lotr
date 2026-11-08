@@ -3,9 +3,16 @@ import { inject, Injectable, signal } from '@angular/core';
 import { readCookie, writeCookie } from './cookies';
 import { PAGE_QUERY_STRING } from './page-location';
 
-/** The deck builder's themes: each is a stylesheet bundle (angular.json, `theme-<name>.css`) of src/themes/<name>/. */
+/**
+ * The themes. Each is a base stylesheet bundle (angular.json, `theme-<name>.css`, from src/themes/<name>/base.css) plus
+ * one bundle per page (`theme-<name>-<page>.css`, from src/themes/<name>/<page>.css).
+ */
 export const THEMES = ['classic', 'modern'] as const;
 export type ThemeName = (typeof THEMES)[number];
+
+/** The pages with theme CSS of their own: a route names its page in `data: { page }` (app.routes.ts). */
+export const THEME_PAGES = ['deckbuilder'] as const;
+export type ThemePage = (typeof THEME_PAGES)[number];
 
 /** Shown in the theme picker. */
 export const THEME_LABELS: Readonly<Record<ThemeName, string>> = { classic: 'Classic', modern: 'Modern' };
@@ -16,11 +23,13 @@ export const DEFAULT_THEME: ThemeName = 'classic';
 export const MOBILE_THEME: ThemeName = 'modern';
 
 /** Remembers the player's choice on this device (path /gemp-lotr, like the legacy settings cookies). */
-export const THEME_COOKIE = 'deckbuilderTheme';
+export const THEME_COOKIE = 'gempTheme';
+/** The cookie's earlier name (the deck builder's own), read when THEME_COOKIE is absent. */
+export const LEGACY_THEME_COOKIE = 'deckbuilderTheme';
 
 /** Set on <html>, so a theme's CSS can tell which theme is active if it needs to. */
 export const THEME_ATTRIBUTE = 'data-theme';
-/** Marks the theme's <link> (and only it), so a switch finds the one to replace. */
+/** Marks the theme's <link>s (and only them), with their bundle's name (`classic`, `classic-deckbuilder`, ...). */
 export const THEME_LINK_ATTRIBUTE = 'data-theme-stylesheet';
 
 /**
@@ -35,11 +44,20 @@ export const THEME_VIEWPORTS: Readonly<Record<ThemeName, string | null>> = {
 /** Marks the viewport <meta> the service added, so it only ever removes its own. */
 export const THEME_VIEWPORT_ATTRIBUTE = 'data-theme-viewport';
 
-/** How long the first paint waits for the theme stylesheet before showing the page anyway. */
+/** How long the first paint (or a page) waits for a theme stylesheet before showing anyway. */
 export const THEME_LOAD_TIMEOUT_MS = 10_000;
 
 export function isThemeName(value: unknown): value is ThemeName {
   return typeof value === 'string' && (THEMES as readonly string[]).includes(value);
+}
+
+export function isThemePage(value: unknown): value is ThemePage {
+  return typeof value === 'string' && (THEME_PAGES as readonly string[]).includes(value);
+}
+
+/** The bundles (and so the <link>s) of a theme on a page: the theme's base, then the page's own, which wins over it. */
+export function themeBundles(theme: ThemeName, page: ThemePage | null): string[] {
+  return page ? [theme, `${theme}-${page}`] : [theme];
 }
 
 /**
@@ -67,71 +85,116 @@ export function resolveTheme(fromQuery: string | null, fromCookie: string | null
 }
 
 /**
- * Chooses the theme and loads its stylesheet. `init()` runs before the app starts (an app initializer), so nothing
- * is drawn before the theme's CSS has loaded. `select()` switches at runtime: the new stylesheet loads next to the
- * old one, which is removed only then, so the page never shows unstyled. Only the CSS changes: the app's state
- * (the deck being edited, the collection page) stays as it is.
+ * Chooses the theme and keeps exactly its stylesheets for the current page linked: the theme's base and the page's
+ * own. `init()` runs before the app starts (an app initializer), so nothing is drawn before the base has loaded;
+ * the router waits for `loadPage()` before it shows a page (ui/app/theme-pages.ts), and `setPage()` drops the
+ * previous page's stylesheet once the page is shown. `select()` switches theme at runtime. New stylesheets always load
+ * next to the old ones, which are removed only then, so the page never shows unstyled. Only the CSS changes: the
+ * app's state (the deck being edited, the collection page) stays as it is.
  */
 @Injectable({ providedIn: 'root' })
 export class ThemeService {
   private readonly document = inject(DOCUMENT);
   private readonly queryString = inject(PAGE_QUERY_STRING);
   private readonly current = signal<ThemeName>(DEFAULT_THEME);
-  /** The latest select(), so an earlier switch that finishes loading later doesn't win. */
-  private requested: ThemeName | null = null;
+  /** The theme and page asked for last (the theme is shown once its stylesheets have loaded). */
+  private target: ThemeName = DEFAULT_THEME;
+  private page: ThemePage | null = null;
+  /** The latest theme or page change, so an earlier one that finishes loading later doesn't win. */
+  private requested: object | null = null;
+  /** Each link's first load (or error, or timeout), so a link already loaded isn't waited for again. */
+  private readonly loading = new WeakMap<HTMLLinkElement, Promise<void>>();
 
   readonly theme = this.current.asReadonly();
 
-  /** Resolves the theme and waits for its stylesheet. A `?theme=` in the address is remembered, as a choice. */
+  /** Resolves the theme and waits for its base stylesheet. A `?theme=` in the address is remembered, as a choice. */
   init(): Promise<void> {
     const fromQuery = new URLSearchParams(this.queryString).get('theme');
     if (isThemeName(fromQuery)) {
       this.remember(fromQuery);
     }
-    const theme = resolveTheme(fromQuery, readCookie(this.document.cookie, THEME_COOKIE), this.mobileDevice());
-    return this.apply(theme);
+    const cookies = this.document.cookie;
+    const fromCookie = readCookie(cookies, THEME_COOKIE) ?? readCookie(cookies, LEGACY_THEME_COOKIE);
+    const theme = resolveTheme(fromQuery, fromCookie, this.mobileDevice());
+    return this.apply(theme, this.page);
   }
 
-  /** The player's choice: remembered, and applied once its stylesheet has loaded. Unknown names are ignored. */
+  /** The player's choice: remembered, and applied once its stylesheets have loaded. Unknown names are ignored. */
   async select(theme: string): Promise<void> {
     if (!isThemeName(theme)) {
       return;
     }
     this.remember(theme);
-    await this.apply(theme);
+    await this.apply(theme, this.page);
   }
 
-  private async apply(theme: ThemeName): Promise<void> {
-    this.requested = theme;
-    const previous = this.document.head.querySelectorAll(`link[${THEME_LINK_ATTRIBUTE}]`);
-    if (previous.length === 1 && previous[0].getAttribute(THEME_LINK_ATTRIBUTE) === theme) {
-      this.show(theme);
+  /**
+   * Loads the current theme's stylesheet for a page about to be shown, keeping the current ones (the page on screen
+   * still needs them). A page without theme CSS of its own (null, or an unknown name) needs only the base.
+   */
+  async loadPage(page: string | null): Promise<void> {
+    const bundles = themeBundles(this.target, isThemePage(page) ? page : null);
+    await Promise.all(this.link(bundles).map((link) => this.whenLoaded(link)));
+  }
+
+  /** The page now shown: its stylesheets are kept (and loaded if missing), any other page's are removed. */
+  setPage(page: string | null): Promise<void> {
+    return this.apply(this.target, isThemePage(page) ? page : null, false);
+  }
+
+  private async apply(theme: ThemeName, page: ThemePage | null, show = true): Promise<void> {
+    const request = {};
+    this.requested = request;
+    this.target = theme;
+    this.page = page;
+    const wanted = this.link(themeBundles(theme, page));
+    await Promise.all(wanted.map((link) => this.whenLoaded(link)));
+    if (this.requested !== request) {
+      // A later change replaced this one while it loaded; it removes what it doesn't need
       return;
     }
-    const link = this.document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = this.stylesheetUrl(theme);
-    link.setAttribute(THEME_LINK_ATTRIBUTE, theme);
-    const loaded = this.whenLoaded(link);
-    // After the last theme link, so it wins over it (and over the page's own stylesheets) while both are present
-    const last = previous.length > 0 ? previous[previous.length - 1] : null;
-    if (last) {
-      last.after(link);
-    } else {
-      this.document.head.appendChild(link);
-    }
-    await loaded;
-    if (this.requested !== theme) {
-      // A later switch replaced this one while it loaded
-      link.remove();
-      return;
-    }
-    for (const old of Array.from(this.document.head.querySelectorAll(`link[${THEME_LINK_ATTRIBUTE}]`))) {
-      if (old !== link) {
+    for (const old of this.themeLinks()) {
+      if (!wanted.includes(old)) {
         old.remove();
       }
     }
-    this.show(theme);
+    if (show || theme !== this.current()) {
+      this.show(theme);
+    }
+  }
+
+  /**
+   * The <link>s of these bundles, in order: the ones already on the page, and new ones added after the existing
+   * theme links (so they win over them while both are present). A theme's base goes before its pages' links.
+   */
+  private link(bundles: string[]): HTMLLinkElement[] {
+    return bundles.map((bundle) => {
+      const links = this.themeLinks();
+      const existing = links.find((link) => link.getAttribute(THEME_LINK_ATTRIBUTE) === bundle);
+      if (existing) {
+        return existing;
+      }
+      const link = this.document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = this.stylesheetUrl(bundle);
+      link.setAttribute(THEME_LINK_ATTRIBUTE, bundle);
+      this.loading.set(link, this.loaded(link));
+      const ownPage = isThemeName(bundle)
+        ? links.find((other) => other.getAttribute(THEME_LINK_ATTRIBUTE)!.startsWith(`${bundle}-`))
+        : undefined;
+      if (ownPage) {
+        ownPage.before(link);
+      } else if (links.length > 0) {
+        links[links.length - 1].after(link);
+      } else {
+        this.document.head.appendChild(link);
+      }
+      return link;
+    });
+  }
+
+  private themeLinks(): HTMLLinkElement[] {
+    return Array.from(this.document.head.querySelectorAll<HTMLLinkElement>(`link[${THEME_LINK_ATTRIBUTE}]`));
   }
 
   private show(theme: ThemeName): void {
@@ -157,12 +220,16 @@ export class ThemeService {
   }
 
   /** Next to the app's other files, whatever the address it is served under (`<base href>`). */
-  private stylesheetUrl(theme: ThemeName): string {
-    return new URL(`theme-${theme}.css`, this.document.baseURI).href;
+  private stylesheetUrl(bundle: string): string {
+    return new URL(`theme-${bundle}.css`, this.document.baseURI).href;
+  }
+
+  private whenLoaded(link: HTMLLinkElement): Promise<void> {
+    return this.loading.get(link) ?? Promise.resolve();
   }
 
   /** Resolves on load, on error (the page then shows without the theme rather than not at all) or on timeout. */
-  private whenLoaded(link: HTMLLinkElement): Promise<void> {
+  private loaded(link: HTMLLinkElement): Promise<void> {
     return new Promise((resolve) => {
       const done = () => {
         clearTimeout(timer);

@@ -82,7 +82,7 @@ regular hall at `http://localhost:4200/gemp-lotr/` and then open the deck builde
 | `src/core/notifier/`                    | `Notifier`: messages and questions to the player (the legacy alert/confirm/prompt), all asynchronous. The view provides it: `ui/shared/notifier/DialogNotifier` (shown by `gd-notifier`), in the page's own dialogs. Tests use `src/testing/fake-notifier.ts`.                                                                                                                                                                                                                                                                                                       |
 | `src/core/session/`                     | `SessionService`: the optional `?participantId=` (admins acting as a player).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `src/core/platform/`                    | The browser, behind services: cookies, the page's query string, image preloading, opening links, and `ThemeService` (see Themes below).                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `src/themes/<name>/`                    | A theme's CSS (`theme.css`); its images and other files go in `public/themes/<name>/`. See Themes below.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `src/themes/<name>/`                    | A theme's CSS: `base.css` (every page) and `<page>.css` per page; its images go in `public/themes/<name>/`. See Themes below.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `src/ui/`                               | The view (see "The UI and its DOM contract" below): `ui/app/` (the app shell, see One app below), `ui/deckbuilder/` (the page component `DeckbuilderPageComponent`, element `<deckbuilder-app>`, the route `deckbuilder`; the page frame, the deck side, the collection filter and cards, the card information, the hover zoom, the dialogs) and `ui/shared/` (the card and its hover reporting, `fitCards`, the dialog, the notifier). Markup and interaction only; the themes draw it. `ui-boundary.spec.ts` checks it imports only core and ui and has no styles. |
 | `src/testing/`                          | Test helpers and `server-responses/`, real server responses the parser tests run against.                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 
@@ -116,37 +116,62 @@ becomes the source: commit it, edit it directly and drop the script and its pre-
 
 ## Themes
 
-The deck builder has two themes, `classic` (the legacy page's look) and `modern`. Each is a stylesheet built from
-`src/themes/<name>/theme.css` into `theme-<name>.css` next to the app (`angular.json`: `inject: false`, so it is not
-linked by default). `ThemeService` (`src/core/platform/theme.service.ts`) picks one:
+The app has two themes, `classic` (the legacy page's look) and `modern`. A theme is a base stylesheet plus one
+stylesheet per page, each a bundle next to the app (`angular.json`, all `inject: false`, so none is linked by default):
+
+- `src/themes/<name>/base.css` → `theme-<name>.css`: what doesn't depend on the page (custom properties, `html`/`body`,
+  buttons and form controls, the card, the dialogs, the notifier, the card information). The modern theme's design
+  tokens (palettes, spacing, radii, type, the 44px touch target, the safe-area insets) are in
+  `src/themes/modern/tokens.css`, which `base.css` imports, so every page shares them.
+- `src/themes/<name>/<page>.css` → `theme-<name>-<page>.css`: that page's own rules (today only `deckbuilder.css`),
+  linked after the base, so it wins over it.
+
+`ThemeService` (`src/core/platform/theme.service.ts`) picks the theme:
 
 1. `?theme=classic` or `?theme=modern` in the address, which is also remembered;
-2. otherwise the `deckbuilderTheme` cookie (the player's choice, made in the toolbar's theme picker);
+2. otherwise the `gempTheme` cookie (path `/gemp-lotr`; the player's choice, made in the toolbar's theme picker), or
+   the deck builder's earlier `deckbuilderTheme` cookie when there is no `gempTheme`;
 3. otherwise the device: phones and tablets (a coarse pointer and a screen whose short side is under 1100px, the rule
    of the legacy `mobileView.js`) get `modern`, everything else `classic`.
 
 Unknown names are ignored. Each theme also has its viewport (`THEME_VIEWPORTS`): `modern` is laid out at the device's
-width (`width=device-width, initial-scale=1, viewport-fit=cover`), `classic` keeps the legacy page's default. The app starts only once the theme's stylesheet has loaded (an app initializer), so the page
-never shows unstyled. Switching loads the new stylesheet first and removes the old one after; only the CSS changes, so
-the deck being edited stays as it is.
+width (`width=device-width, initial-scale=1, viewport-fit=cover`), `classic` keeps the legacy page's default.
 
-Scoping: only one theme's stylesheet is on the page at a time, so theme CSS is written without a theme prefix.
-`<html data-theme="...">` is also set, for the rare rule that must know the theme from outside a theme stylesheet.
-The theme files are not hashed (their names are fixed so they can be linked at runtime); the server revalidates them
-with an ETag, like the legacy stylesheets.
+The service keeps exactly the stylesheets of the current theme and page linked. The app starts only once the theme's
+base has loaded (an app initializer). A route names its page in `data: { page: '<page>' }` and has the resolver
+`resolve: { themePage: loadThemePage }` (`src/ui/app/theme-pages.ts`), so the router shows the page only once its
+stylesheet has loaded; after a navigation, the previous page's stylesheet is removed. Switching theme loads the new
+base and page stylesheets first and removes the old ones after. So the page never shows unstyled, and only the CSS
+changes: the deck being edited stays as it is. A page that isn't in `THEME_PAGES` gets the base only.
+
+Scoping: only one theme's stylesheets are on the page at a time, so theme CSS is written without a theme prefix, and
+a page's stylesheet is only linked on its page. `<html data-theme="...">` is also set, for the rare rule that must know
+the theme from outside a theme stylesheet. The theme files are not hashed (their names are fixed so they can be linked
+at runtime); the server revalidates them with an ETag, like the legacy stylesheets.
 
 ### Adding a theme
 
-1. Create `src/themes/<name>/theme.css`. It styles the `.gd-*` markup described below and nothing else; copy
-   `modern` or `classic` as a starting point. Images and other files go in `public/themes/<name>/` (served as
-   `/gemp-lotr/ng/themes/<name>/...`; the classic theme refers to them by that absolute path).
-2. Add a bundle to `angular.json` (`projects.deckbuilder.architect.build.options.styles`):
-   `{ "input": "src/themes/<name>/theme.css", "bundleName": "theme-<name>", "inject": false }`.
+1. Create `src/themes/<name>/base.css` and a `<page>.css` for every page in `THEME_PAGES` (today `deckbuilder.css`).
+   They style the `.gd-*` markup described below and nothing else; copy `modern` or `classic` as a starting point.
+   Images and other files go in `public/themes/<name>/` (served as `/gemp-lotr/ng/themes/<name>/...`; the classic
+   theme refers to them by that absolute path).
+2. Add the bundles to `angular.json` (`projects.deckbuilder.architect.build.options.styles`):
+   `{ "input": "src/themes/<name>/base.css", "bundleName": "theme-<name>", "inject": false }` and, per page,
+   `{ "input": "src/themes/<name>/<page>.css", "bundleName": "theme-<name>-<page>", "inject": false }`.
 3. Register it in `src/core/platform/theme.service.ts`: add the name to `THEMES`, a label to `THEME_LABELS` (shown in
    the toolbar's picker) and an entry to `THEME_VIEWPORTS` (`null` for the browser's default). Change `DEFAULT_THEME` or
    `MOBILE_THEME` only if it should be picked by default.
 4. Show or hide the optional affordances (the tab bar, the cards' ⓘ, ...) and set the `fitCards` properties for its
    card boxes. Check it with `npm run build` and `visual-check/stubbed.mjs --angular '/gemp-lotr/ng/deckbuilder/?theme=<name>'`.
+
+### Adding a page's theme CSS
+
+1. Write `src/themes/<theme>/<page>.css` for every theme. Rules other pages could use (a shared component, a token)
+   belong in the theme's `base.css` (or the modern `tokens.css`) instead.
+2. Add a `theme-<theme>-<page>` bundle per theme to `angular.json` (as above, `inject: false`).
+3. Add the page to `THEME_PAGES` (`theme.service.ts`) and give its route `data: { page: '<page>' }` and
+   `resolve: { themePage: loadThemePage }` in `app.routes.ts`. `theme-pages.spec.ts` checks that every route with a
+   `data.page` has all of this.
 
 ## The UI and its DOM contract
 

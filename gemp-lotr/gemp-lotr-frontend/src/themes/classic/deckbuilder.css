@@ -1,0 +1,824 @@
+/*
+ * The classic theme's deck builder, built into theme-classic-deckbuilder.css: ThemeService loads it after the theme's
+ * base (base.css), on the deck builder page only.
+ */
+
+/* ---------------------------------------------------------------- page frame (jquery.layout) */
+
+/* The phone tab bar and the cards' ⓘ spot are not used */
+.gd-page__tabs,
+.gd-card > .gd-card__info {
+  display: none;
+}
+
+.gd-page {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  /* east__minSize 410, east__maxSize 50% of what the 6px resizer leaves */
+  grid-template-columns: minmax(0, 1fr) 6px clamp(410px, var(--gd-collection-width, 410px), calc((100% - 6px) / 2));
+  grid-template-rows: 100%;
+}
+
+.gd-page[data-collection='closed'] {
+  grid-template-columns: minmax(0, 1fr) 6px 0;
+}
+
+.gd-page__deck,
+.gd-page__collection {
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid #bbb;
+  background: #000;
+  overflow: auto;
+}
+
+.gd-page__separator {
+  position: relative;
+  background: #ddd;
+  cursor: e-resize;
+}
+
+.gd-page[data-collection='closed'] .gd-page__separator {
+  cursor: pointer;
+}
+
+.gd-page__separator[data-dragging] {
+  background: #aaa;
+}
+
+.gd-page__toggle {
+  position: absolute;
+  left: 0;
+  top: calc(50% - 25px);
+  width: 6px;
+  height: 50px;
+  padding: 0;
+  border: 0;
+  background: #aaa;
+  cursor: pointer;
+}
+
+.gd-page__toggle:hover {
+  background: #888;
+}
+
+.gd-page__collection {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Narrower than the collection's minimum beside a deck: the legacy page hid the collection */
+@media (max-width: 825px) {
+  .gd-page {
+    grid-template-columns: minmax(0, 1fr) 6px 0;
+  }
+  .gd-page__collection {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------- collection filter (CardFilter.buildUi) */
+
+.gd-filter {
+  /* The fields and the reset buttons are as wide as the legacy filter table; the pager and cultures span the pane */
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+}
+
+.gd-pager,
+.gd-cultures {
+  grid-column: 1 / -1;
+}
+
+.gd-pager {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.gd-pager__size {
+  flex-grow: 1;
+  margin: 0 8px;
+}
+
+.gd-pager .gd-button {
+  width: 25px;
+  height: 31px;
+  padding: 0;
+}
+
+/* The legacy filter table: label, control, label, control; 2px cell spacing and 1px cell padding */
+.gd-filter__fields {
+  display: grid;
+  grid-template-columns: repeat(4, max-content);
+  align-items: center;
+  column-gap: 4px;
+  row-gap: 2px;
+  padding: 2px;
+  justify-content: start;
+}
+
+.gd-filter__basic,
+.gd-filter__advanced,
+.gd-field {
+  display: contents;
+}
+
+.gd-field__label {
+  padding: 1px 5px 1px 1px;
+  color: #fff;
+  font-weight: bolder;
+  font-size: 80%;
+  white-space: nowrap;
+}
+
+.gd-field__control {
+  display: flex;
+  align-items: center;
+  padding: 1px;
+}
+
+.gd-field[data-wide] .gd-field__control {
+  grid-column: span 3;
+}
+
+.gd-field select,
+.gd-field input {
+  font-size: 80%;
+  padding-right: 5px;
+  color: #fff;
+  background-color: #222;
+}
+
+.gd-field select {
+  max-width: 100px;
+  padding: 3px 5px 3px 3px;
+  border-color: #888 #666 #666 #888;
+  border-radius: 8px;
+}
+
+.gd-field select:hover {
+  background-color: #444;
+}
+
+.gd-field input {
+  margin: 2px;
+  border-color: #666 #888 #888 #666;
+}
+
+.gd-field input[type='text'] {
+  width: 250px;
+  max-width: 230px;
+}
+
+.gd-field input[type='number'] {
+  width: 35px;
+}
+
+.gd-field select:disabled,
+.gd-field input:disabled {
+  color: #ddd;
+  background-color: #888;
+}
+
+.gd-filter__advanced-title {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 5px 0 2px;
+  color: #fff;
+  text-align: center;
+  font-size: 90%;
+}
+
+a:visited {
+  color: #bf6b04;
+}
+
+.gd-filter__resets {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 0 5px;
+  padding-top: 9px;
+}
+
+/* 95% of the page's 12px, then jQuery UI's 70% for button text */
+.gd-filter__resets .gd-button {
+  padding: 3px 0.3em;
+  font-size: 7.98px;
+  line-height: 1.4;
+}
+
+/* The culture toggles: a jQuery UI buttonset */
+.gd-cultures {
+  display: flex;
+  flex-wrap: wrap;
+  margin-top: 5px;
+  margin-right: 7px;
+  font-family: var(--classic-widget-font);
+  font-size: 13.2px;
+}
+
+.gd-cultures__group {
+  display: flex;
+}
+
+.gd-culture {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.2em;
+  margin-right: -0.2em;
+  /* .ui-button-text's padding, at its 70% font size */
+  padding: 1.85px 2.77px;
+  border: 1px solid #444;
+  background: var(--classic-default-bg);
+  cursor: pointer;
+  line-height: 1.4;
+}
+
+.gd-cultures__group:first-child .gd-culture:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+.gd-cultures__group:last-child .gd-culture:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.gd-culture:hover,
+.gd-culture:has(.gd-culture__input:focus-visible) {
+  border-color: #0b93d5;
+  background: var(--classic-hover-bg);
+}
+
+.gd-culture[data-active] {
+  border-color: #26b3f7;
+  background: var(--classic-active-bg);
+}
+
+.gd-culture__input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+}
+
+.gd-culture__icon {
+  height: 20px;
+}
+
+.gd-culture[data-icon-kind='culture'] .gd-culture__icon {
+  /* Black SVGs drawn white (the legacy trick) */
+  filter: invert(89%) sepia(64%) saturate(0%) hue-rotate(145deg) brightness(116%) contrast(101%);
+}
+
+/* ---------------------------------------------------------------- the deck side (GempLotrDeckBuildingUI.layoutUI) */
+
+/*
+ * Positioned as layoutUI did, from the pane's padding box: the pane's content size (pane-w x pane-h) gives a toolbar
+ * row, five slot rows beside a sites column at most 250px wide, and the draw deck with the stats under it. Each slot
+ * box is drawn 2px larger than its place (the legacy content-box borders); its cards keep 3px inside the place.
+ */
+.gd-page__deck {
+  position: relative;
+  container-type: size;
+}
+
+.gd-deck {
+  /* the container units measure the pane's content box */
+  --pane-w: 100cqw;
+  --pane-h: 100cqh;
+  --deck-h: calc(var(--pane-h) - 28px);
+  --row: round(down, calc((var(--deck-h) - 30px) / 5), 1px);
+  --sites-w: min(round(down, calc(var(--deck-h) * 1.5 / 5), 1px), 250px);
+  --half: round(down, calc((var(--sites-w) - 5px) / 2), 1px);
+  --right-half: round(down, calc((var(--sites-w) + 15px) / 2), 1px);
+  --draw-left: calc(10px + var(--sites-w));
+  --draw-w: calc(var(--pane-w) - var(--sites-w) - 10px);
+  --draw-h: calc(var(--deck-h) - 60px);
+  /* the Map and Race row, when the format has either */
+  --special-rows: 0;
+  position: absolute;
+  inset: 0;
+  color: #fff;
+  font-family: 'Times New Roman', serif;
+  font-size: 12px;
+}
+
+.gd-deck:has(.gd-slot[data-slot='map']:not([hidden]), .gd-slot[data-slot='race']:not([hidden])) {
+  --special-rows: 1;
+}
+
+.gd-slot,
+.gd-pile {
+  position: absolute;
+  box-sizing: border-box;
+  border: 1px solid #555;
+  border-radius: 7px;
+  background: var(--classic-content-bg);
+}
+
+.gd-slot[data-slot='ring-bearer'],
+.gd-slot[data-slot='map'] {
+  left: 5px;
+  width: calc(var(--half) + 2px);
+  height: calc(var(--row) + 2px);
+}
+
+.gd-slot[data-slot='ring'],
+.gd-slot[data-slot='race'] {
+  left: var(--right-half);
+  width: calc(var(--half) + 2px);
+  height: calc(var(--row) + 2px);
+}
+
+.gd-slot[data-slot='ring-bearer'],
+.gd-slot[data-slot='ring'] {
+  top: 33px;
+}
+
+.gd-slot[data-slot='map'],
+.gd-slot[data-slot='race'] {
+  top: calc(33px + var(--row));
+}
+
+.gd-slot[data-slot='sites'] {
+  left: 5px;
+  top: calc(38px + (1 + var(--special-rows)) * var(--row));
+  width: calc(var(--sites-w) + 2px);
+  height: calc(var(--deck-h) - (1 + var(--special-rows)) * var(--row) - 8px);
+}
+
+/* The whole box selects for the slot; the cards are drawn over it */
+.gd-slot__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  text-align: center;
+  cursor: default;
+}
+
+button.gd-slot__label:focus-visible {
+  outline: 2px solid #0b93d5;
+  outline-offset: -2px;
+}
+
+.gd-slot__title,
+.gd-slot__hint {
+  display: block;
+}
+
+/* .helper-text */
+.gd-slot__hint {
+  position: relative;
+  top: 40%;
+  padding: 10px;
+  font-size: calc(0.3rem + 0.75vh);
+  transform: translateY(-50%);
+}
+
+.gd-slot[data-slot='sites'] .gd-slot__hint {
+  top: 10%;
+}
+
+/* Under the Map's hint, after a blank line, as the legacy hint's own link */
+.gd-slot__link {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(40% + 1em);
+  color: #fff;
+  font-size: calc(0.3rem + 0.75vh);
+  font-style: italic;
+  text-align: center;
+}
+
+.gd-slot__cards,
+.gd-pile__cards {
+  --gd-card-gap: 5px;
+  --gd-card-fit: rows;
+  position: absolute;
+  /* CardGroup.setBounds: 3px in from the place, which is 1px in from the box */
+  inset: 2px 4px 4px 2px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gd-card-gap);
+  pointer-events: none;
+}
+
+.gd-slot__cards {
+  --gd-card-max-height: 497px;
+}
+
+.gd-slot__cards > .gd-card,
+.gd-stack > .gd-card {
+  pointer-events: auto;
+}
+
+/*
+ * VerticalBarGroup: the sites at the column's full width, one under the other below a 20px title gap, 5px apart or
+ * squeezed together so the last one ends at the bottom.
+ */
+.gd-slot[data-slot='sites'] .gd-slot__cards {
+  --gd-card-height: 100cqw;
+  --site-h: round(down, calc(100cqw * 350 / 490), 1px);
+  --n: var(--gd-slot-count, 1);
+  container-type: size;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-content: normal;
+  gap: 0;
+  padding-top: 20px;
+}
+
+.gd-slot[data-slot='sites'] .gd-card {
+  top: 0;
+}
+
+.gd-slot[data-slot='sites'] .gd-card {
+  flex: none;
+}
+
+.gd-slot[data-slot='sites'] .gd-card + .gd-card {
+  margin-top: min(5px, (100cqh - 20px - var(--n) * var(--site-h)) / (var(--n) - 1));
+}
+
+.gd-pile {
+  left: var(--draw-left);
+  width: calc(var(--draw-w) + 2px);
+  height: calc(var(--draw-h) / 2 + 2px);
+}
+
+.gd-pile[data-side='free-peoples'] {
+  top: 33px;
+}
+
+.gd-pile[data-side='shadow'] {
+  top: calc(33px + var(--draw-h) / 2);
+}
+
+.gd-pile__cards {
+  --gd-card-max-height: 200px;
+}
+
+/* NormalCardGroup rows are as high as the row height */
+.gd-stack {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  height: var(--gd-card-height);
+}
+
+/* Each copy behind shows a fifth of its width (rounded down) */
+.gd-stack > .gd-card[data-role='copy'] {
+  margin-right: calc(round(down, calc(var(--gd-card-width) / 5), 1px) - var(--gd-card-width));
+}
+
+/* ---------------------------------------------------------------- deck toolbar (#manageDecks) */
+
+.gd-toolbar {
+  position: absolute;
+  left: 5px;
+  top: 5px;
+  display: flex;
+  width: var(--pane-w);
+  height: 23px;
+  color: #fff;
+  font-size: 21.6px;
+}
+
+.gd-toolbar__deck-actions {
+  display: contents;
+}
+
+.gd-toolbar .gd-button {
+  flex: none;
+  width: 28px;
+  height: 23px;
+  /* jQuery UI's .1em between buttons */
+  margin-right: 2.35px;
+  padding: 0;
+}
+
+.gd-toolbar .gd-button::before {
+  content: '';
+  display: block;
+  width: 16px;
+  height: 16px;
+  margin: auto;
+  background: var(--classic-icons) no-repeat;
+  transform: translateY(0.8px);
+}
+
+.gd-toolbar .gd-button:enabled:hover::before,
+.gd-toolbar .gd-button:focus-visible::before {
+  background-image: var(--classic-icons-hover);
+}
+
+.gd-button[data-action='new']::before {
+  background-position: -32px -96px;
+}
+.gd-button[data-action='save']::before {
+  background-position: -96px -112px;
+}
+.gd-button[data-action='rename']::before {
+  background-position: -64px -112px;
+}
+.gd-button[data-action='copy']::before {
+  background-position: -176px -128px;
+}
+.gd-button[data-action='import']::before {
+  background-position: -224px -48px;
+}
+.gd-button[data-action='library']::before {
+  background-position: -224px -96px;
+}
+.gd-button[data-action='deck-list']::before {
+  background-position: -112px -96px;
+}
+.gd-button[data-action='convert-errata']::before {
+  background-position: -112px -80px;
+}
+.gd-button[data-action='notes']::before {
+  background-position: -16px -128px;
+}
+.gd-button[data-action='auto-zoom']::before {
+  background-position: -32px -192px;
+}
+.gd-button[data-action='auto-zoom'][aria-pressed='true']::before {
+  background-position: -160px -112px;
+}
+
+.gd-toolbar .gd-button[data-action='auto-zoom'] {
+  width: 27px;
+}
+
+.gd-toolbar .gd-button[data-action='auto-zoom']::before {
+  margin: 0 0 0 3.2px;
+  transform: translateY(1.3px);
+}
+
+.gd-toolbar select {
+  flex: none;
+  box-sizing: border-box;
+  height: 23px;
+  padding: 3px;
+  border: 1px solid #888;
+  border-color: #888 #666 #666 #888;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+  font:
+    13.3333px Arial,
+    sans-serif;
+}
+
+.gd-toolbar select:hover {
+  background-color: #444;
+}
+
+.gd-toolbar__format {
+  width: 200px;
+}
+
+.gd-toolbar__collection {
+  width: 100px;
+}
+
+/* Not on the legacy page: in the deck name's empty space, so the magnifier and the collection stay where they were */
+.gd-toolbar__theme {
+  order: 1;
+  width: 72px;
+  margin-right: 2.35px;
+}
+
+.gd-toolbar .gd-button[data-action='auto-zoom'] {
+  order: 2;
+}
+
+.gd-toolbar__collection {
+  order: 3;
+}
+
+/* #editingDeck */
+.gd-toolbar__deck-name {
+  flex-grow: 1;
+  min-width: 0;
+  padding-left: 3px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.gd-toolbar__deck-name[data-modified] {
+  color: orange;
+}
+
+/* ---------------------------------------------------------------- deck stats (#statsDiv) */
+
+.gd-stats {
+  position: absolute;
+  left: var(--draw-left);
+  top: calc(var(--deck-h) - 22px);
+  display: block;
+  width: var(--draw-w);
+  min-height: 70px;
+  line-height: 15px;
+}
+
+.gd-stats__line {
+  min-height: 15px;
+}
+
+.gd-stats [data-tone='error'] {
+  color: red;
+}
+
+.gd-stats [data-tone='valid'] {
+  color: green;
+}
+
+.gd-stats [data-tone='warning'] {
+  color: yellow;
+}
+
+/* ---------------------------------------------------------------- hover zoom (AutoZoom, #previewImage) */
+
+.gd-zoom {
+  --long: max(var(--gd-zoom-width), var(--gd-zoom-height));
+  position: fixed;
+  left: var(--gd-zoom-left);
+  top: var(--gd-zoom-top);
+  z-index: 1099;
+  width: var(--gd-zoom-width);
+  height: var(--gd-zoom-height);
+  pointer-events: none;
+}
+
+.gd-zoom > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 5%;
+}
+
+.gd-zoom__foil {
+  opacity: 0.2;
+}
+
+.gd-zoom > .gd-zoom__overlay {
+  top: auto;
+  height: 27%;
+  border-radius: 0;
+  object-fit: cover;
+  object-position: bottom;
+}
+
+/* CardDisplay's border: a 28th of the long side, 2px larger than the card */
+.gd-zoom::after {
+  content: '';
+  position: absolute;
+  inset: 0 -2px -2px 0;
+  border: round(down, calc(var(--long) / 28), 1px) solid #000;
+  border-radius: 5%;
+}
+
+/* ---------------------------------------------------------------- the collection's cards (NormalCardGroup) */
+
+.gd-collection {
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+  /* layoutUI: the group is the pane's width minus 10px, and leaves room below */
+  margin: 1px 8px 9px 0;
+}
+
+.gd-collection__cards {
+  --gd-card-max-height: 200px;
+  --gd-card-gap: 5px;
+  --gd-card-fit: rows;
+  box-sizing: border-box;
+  flex: 1 1 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gd-card-gap);
+  /*
+   * The cards start 3px in from the box's edge, as the legacy group did; its area was 472px high in a 480px box, and
+   * wider than the box (the cards wrap a little sooner here)
+   */
+  padding: 2px 0 4px 2px;
+  border: 1px solid #555;
+  border-radius: 7px;
+  background: var(--classic-content-bg);
+  overflow: hidden;
+}
+
+/*
+ * NormalCardGroup's rows: as high as the row height, which can have a fraction (a card is a whole number of px), and
+ * centred as the rows it sized them for (moved, not laid out, so the box's size doesn't change)
+ */
+.gd-collection__cards > .gd-card,
+.gd-slot__cards > .gd-card,
+.gd-stack {
+  top: var(--gd-card-offset, 0px);
+}
+
+.gd-collection__cards > .gd-card {
+  margin-bottom: calc(var(--gd-card-height, 200px) - round(down, calc(var(--gd-card-width) * 490 / 350), 1px));
+}
+
+.gd-collection__cards > .gd-card[data-orientation='horizontal'] {
+  margin-bottom: calc(var(--gd-card-height, 200px) - round(down, calc(var(--gd-card-width) * 350 / 490), 1px));
+}
+
+/* ---------------------------------------------------------------- the deck builder's dialogs */
+
+/* Deck list, library and notes: 700 x 400 */
+.gd-dialog:is([data-dialog='deck-list'], [data-dialog='library'], [data-dialog='notes']) {
+  --classic-dialog-width: 700px;
+  --classic-dialog-height: 400px;
+  height: var(--classic-dialog-height);
+}
+
+.gd-deck-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Import: opened before it had content, so placed as a 150px high dialog (its minimum), then grown downwards */
+.gd-dialog[data-dialog='import'] {
+  --classic-dialog-height: 150px;
+}
+
+/*
+ * The textarea alone on its line, with no space below it for the text's descenders: the legacy page's doctype (limited
+ * quirks mode) left that space out, and its dialog was this high
+ */
+.gd-import__text {
+  vertical-align: top;
+}
+
+/* Notes (.notesDialog, .notesText) */
+.gd-dialog[data-dialog='notes'] .gd-dialog__body {
+  display: flex;
+}
+
+.gd-notes__text {
+  flex-grow: 1;
+  margin: 5px;
+}
+
+/* Selection pack and new items: 80% of the window the first time (openSizeDialog) */
+.gd-dialog:is([data-dialog='selection'], [data-dialog='delivery']) {
+  --classic-dialog-width: round(down, 80vw, 0.01px);
+  --classic-dialog-height: round(down, 80vh, 0.01px);
+  height: var(--classic-dialog-height);
+}
+
+/*
+ * The cards (a NormalCardGroup over the content: from 5px in from its padding box's top left, as large as the
+ * content box)
+ */
+.gd-dialog:is([data-dialog='selection'], [data-dialog='delivery']) .gd-dialog__body {
+  display: flex;
+  padding: 5px calc(2em - 5px) calc(1em - 5px) 5px;
+  overflow: hidden;
+}
+
+.gd-shown-cards {
+  --gd-card-max-height: 497px;
+  --gd-card-gap: 5px;
+  --gd-card-fit: rows;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+.gd-shown-cards > .gd-card {
+  top: var(--gd-card-offset, 0px);
+  margin-bottom: calc(var(--gd-card-height, 200px) - round(down, calc(var(--gd-card-width) * 490 / 350), 1px));
+}
+
+.gd-shown-cards > .gd-card[data-orientation='horizontal'] {
+  margin-bottom: calc(var(--gd-card-height, 200px) - round(down, calc(var(--gd-card-width) * 350 / 490), 1px));
+}

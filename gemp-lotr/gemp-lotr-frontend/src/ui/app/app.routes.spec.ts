@@ -4,6 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { PAGE_QUERY_STRING } from '../../core/platform/page-location';
+import { ThemeService } from '../../core/platform/theme.service';
 import { provideFakeNotifier } from '../../testing/fake-notifier';
 import { DeckbuilderPageComponent } from '../deckbuilder/deckbuilder-page.component';
 import { AppComponent } from './app.component';
@@ -20,6 +21,8 @@ describe('app routes', () => {
         { provide: PAGE_QUERY_STRING, useValue: '' },
       ],
     });
+    // jsdom loads no stylesheets: the page's theme CSS is "loaded" at once (theme-pages.spec.ts tests the waiting)
+    vi.spyOn(TestBed.inject(ThemeService), 'loadPage').mockResolvedValue();
   });
 
   afterEach(() => TestBed.inject(HttpTestingController).match(() => true));

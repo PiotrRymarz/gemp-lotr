@@ -26,13 +26,23 @@
             ],
             "styles": [
               {
-                "input": "src/themes/classic/theme.css",
+                "input": "src/themes/classic/base.css",
                 "bundleName": "theme-classic",
                 "inject": false
               },
               {
-                "input": "src/themes/modern/theme.css",
+                "input": "src/themes/classic/deckbuilder.css",
+                "bundleName": "theme-classic-deckbuilder",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/deckbuilder.css",
+                "bundleName": "theme-modern-deckbuilder",
                 "inject": false
               }
             ],
