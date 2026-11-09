@@ -91,6 +91,7 @@ node stubbed.mjs --theme modern --touch --viewport tablet --out report-tablet
 | `--legacy`               | the page's       | The legacy page's path                                                                                      |
 | `--viewport` (`--sizes`) | `desktop`        | Comma-separated `WxH` or presets: `desktop` 1440x900, `laptop` 1280x800, `phone` 390x844, `tablet` 820x1180 |
 | `--touch`                | off              | Emulates a touch screen (`pointer: coarse`), for `phone` and `tablet`                                       |
+| `--color-scheme`         | `light`          | `prefers-color-scheme` as emulated: `light` or `dark` (the modern theme's two palettes)                     |
 | `--out`                  | `report-stubbed` | Output folder (emptied first)                                                                               |
 | `--timeout`              | 10000            | Milliseconds a step may wait for an element                                                                 |
 

@@ -36,6 +36,7 @@ const { values: options, positionals } = parseArgs({
     viewport: { type: 'string' },
     sizes: { type: 'string' },
     touch: { type: 'boolean', default: false },
+    'color-scheme': { type: 'string', default: 'light' },
     out: { type: 'string', default: 'report-stubbed' },
     timeout: { type: 'string', default: '10000' },
     compare: { type: 'boolean', default: false },
@@ -116,6 +117,7 @@ for (const page of pages) {
         const context = await browser.newContext({
           viewport: { width: size.width, height: size.height },
           ...(options.touch ? { isMobile: true, hasTouch: true } : {}),
+          colorScheme: options['color-scheme'],
         });
         context.setDefaultTimeout(timeout);
         const log = [];
