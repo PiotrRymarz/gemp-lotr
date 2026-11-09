@@ -170,7 +170,7 @@ at runtime); the server revalidates them with an ETag, like the legacy styleshee
    the settings dialog's picker) and an entry to `THEME_VIEWPORTS` (`null` for the browser's default). Change `DEFAULT_THEME` or
    `MOBILE_THEME` only if it should be picked by default.
 4. Show or hide the optional affordances (the tab bar, the cards' ⓘ, ...) and set the `fitCards` properties for its
-   card boxes. Check it with `npm run build` and `visual-check/stubbed.mjs --angular '/gemp-lotr/ng/deckbuilder/?theme=<name>'`.
+   card boxes. Check it with `npm run build` and `visual-check/stubbed.mjs --theme <name>`.
 
 ### Adding a page's theme CSS
 
@@ -235,5 +235,6 @@ npm run build               # both theme bundles: theme-classic.css, theme-moder
 `visual-check/` is a Playwright check, separate from the Maven build (see `visual-check/README.md`):
 
 - `stubbed.mjs` needs no server: after `npm run build`, `cd visual-check && node stubbed.mjs` screenshots the legacy
-  page and this one side by side (`--angular '...?theme=modern' --touch` for the modern theme on a phone);
+  pages and these side by side, one module per page in `visual-check/pages/` (`--theme modern --touch --viewport
+phone` for the modern theme on a phone); `compare.mjs` compares two runs pixel by pixel;
 - `run.mjs` (`npm run check`) compares both pages against a running server; it still uses the legacy element IDs.

@@ -1,391 +1,147 @@
-// Screenshots the legacy deckBuild.html and the Angular deck builder side by side with no Gemp server: both pages are
-// served from disk (the legacy web root and the Angular build output) through Playwright routes, and the server's
-// answers come from src/testing/server-responses plus a generated collection. Card images (on i.lotrtcgpc.net) are
-// replaced by labelled placeholders, the same on both pages.
+// Screenshots each legacy page and its Angular page side by side with no Gemp server: both are served from disk (the
+// legacy web root and the Angular build output) and the server's answers come from the page's module in pages/ (see
+// pages/index.mjs and README.md). Needs a build of the Angular app (npm run build). It compares nothing by itself;
+// `--compare` (or compare.mjs) compares two runs.
 //
-//   node stubbed.mjs [--angular '/gemp-lotr/ng/deckbuilder/?theme=classic'] [--sizes 1440x900]
-//                    [--theme classic] [--out report-stubbed] [--only collection,...] [--touch]
+//   node stubbed.mjs [--page deckbuilder,...] [--scenario collection,...] [--theme classic|modern]
+//                    [--angular '<path>' | '?<query>'] [--viewport 1440x900,phone,tablet] [--touch]
+//                    [--out report-stubbed] [--timeout 10000]
+//   node stubbed.mjs --compare <dirA> <dirB> [--threshold 2] [--tolerance 0]
 //
-// Writes <out>/<scenario>-<size>-{legacy,angular}.png. Needs a build of the Angular page (npm run build). Unlike
-// run.mjs this compares nothing by itself: it is for looking at the two pages. --touch emulates a phone or tablet (a
-// touch screen, so `pointer: coarse`). The `pane-*` and `info-button` scenarios use the Angular page's tab bar and ⓘ
-// spot, which only some themes show; the legacy page has neither and is shown as loaded.
+// Writes <out>/<page>-<scenario>-<size>-{legacy,angular}.png (the deck builder's without "<page>-"). --touch emulates
+// a phone or tablet (a touch screen, so `pointer: coarse`).
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { chromium } from 'playwright';
-import { CONTROLS } from './controls.mjs';
+import { compareDirs } from './compare.mjs';
+import { settle } from './lib/steps.mjs';
+import { ORIGIN, route } from './lib/stub-server.mjs';
+import { PAGES } from './pages/index.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
-const FRONTEND = path.resolve(HERE, '..');
-const WEB = path.resolve(FRONTEND, '../gemp-lotr-async/src/main/web');
-const BUILD = path.join(WEB, 'ng');
-const RESPONSES = path.join(FRONTEND, 'src/testing/server-responses');
-const ORIGIN = 'http://gemp.test';
 
-const { values: options } = parseArgs({
+/** Window size presets for --viewport. */
+export const VIEWPORTS = { desktop: '1440x900', laptop: '1280x800', phone: '390x844', tablet: '820x1180' };
+
+const { values: options, positionals } = parseArgs({
+  allowPositionals: true,
   options: {
-    legacy: { type: 'string', default: '/gemp-lotr/deckBuild.html' },
-    angular: { type: 'string', default: '/gemp-lotr/ng/deckbuilder/?theme=classic' },
-    sizes: { type: 'string', default: '1440x900' },
+    page: { type: 'string' },
+    scenario: { type: 'string' },
     only: { type: 'string' },
-    out: { type: 'string', default: 'report-stubbed' },
+    theme: { type: 'string', default: 'classic' },
+    angular: { type: 'string' },
+    legacy: { type: 'string' },
+    viewport: { type: 'string' },
+    sizes: { type: 'string' },
     touch: { type: 'boolean', default: false },
+    out: { type: 'string', default: 'report-stubbed' },
+    timeout: { type: 'string', default: '10000' },
+    compare: { type: 'boolean', default: false },
+    threshold: { type: 'string', default: '2' },
+    tolerance: { type: 'string', default: '0' },
   },
 });
 
-const TYPES = {
-  '.html': 'text/html',
-  '.js': 'text/javascript',
-  '.mjs': 'text/javascript',
-  '.css': 'text/css',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.svg': 'image/svg+xml',
-  '.json': 'application/json',
-  '.woff2': 'font/woff2',
-};
-
-const FORMATS = {
-  Formats: Object.fromEntries(
-    [
-      ['rev_tow_sta', 'Anything Goes'],
-      ['fotr_block', 'Fellowship Block'],
-      ['pc_movie', 'Movie Block (PC)'],
-    ].map(([code, name], order) => [
-      code,
-      {
-        code,
-        name,
-        order,
-        hall: true,
-        usesMaps: false,
-        blockFilters: [
-          { filter: 'fotr_block', name: 'Fellowship Block', setFilters: { 'The Fellowship of the Ring': '1' } },
-        ],
-        errata: {},
-      },
-    ]),
-  ),
-};
-
-/** A collection of the first cards of set 1, a few of its sites (landscape cards) and two packs. */
-const COLLECTION = [
-  { pack: 'FotR - Booster', count: 2 },
-  { pack: '(S)FotR - Starter', count: 2, contents: '1_1|1_2|1_3|1_4|1_319' },
-  ...Array.from({ length: 60 }, (_, i) => ({
-    id: `1_${i + 1}`,
-    count: (i % 4) + 1,
-    side: i % 3 === 0 ? 'SHADOW' : 'FREE_PEOPLE',
-  })),
-  ...Array.from({ length: 9 }, (_, i) => ({ id: `1_${319 + i}`, count: 1, side: null })),
-];
-
-function collectionXml(url) {
-  const start = Number(url.searchParams.get('start') ?? 0);
-  const count = Number(url.searchParams.get('count') ?? 18);
-  const items = COLLECTION.slice(start, start + count)
-    .map((item) =>
-      item.pack
-        ? `<pack blueprintId="${item.pack}" count="${item.count}"${item.contents ? ` contents="${item.contents}"` : ''}/>`
-        : `<card blueprintId="${item.id}" count="${item.count}"${item.side ? ` side="${item.side}"` : ''}/>`,
-    )
-    .join('');
-  return `<?xml version="1.0" encoding="UTF-8"?><collection count="${COLLECTION.length}">${items}</collection>`;
-}
-
-/** A card-sized placeholder with the image's name, so cards can be told apart. */
-function placeholder(url) {
-  const name = decodeURIComponent(url.pathname.split('/').pop());
-  let hash = 0;
-  for (const c of name) hash = (hash * 31 + c.charCodeAt(0)) >>> 0;
-  const hue = hash % 360;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="357" height="497" viewBox="0 0 357 497">
-<rect width="357" height="497" fill="hsl(${hue} 40% 35%)"/><rect x="20" y="20" width="317" height="250" fill="hsl(${hue} 30% 55%)"/>
-<text x="178" y="340" font-family="sans-serif" font-size="34" fill="#fff" text-anchor="middle">${name}</text></svg>`;
-}
-
-/** A few saved decks (and library decks), with a name to escape and a long one. */
-const DECKS = [
-  ['Fellowship Block', 'Test + deck &amp; co'],
-  ['Anything Goes', 'Aragorn and the Rangers'],
-  ['Movie Block (PC)', 'Gandalf the Grey, Gandalf the White and the Fellowship of the Ring on their way to Mordor'],
-  ['Fellowship Block', 'Moria Orcs'],
-];
-const DECKS_XML = `<?xml version="1.0" encoding="UTF-8"?><decks>${DECKS.map(
-  ([format, name]) => `<deck targetFormat="${format}">${name}</deck>`,
-).join('')}</decks>`;
-
-function serverAnswer(url, request, scenario) {
-  const p = url.pathname.replace('/gemp-lotr-server', '');
-  const own = scenario.answers?.[p];
-  if (own) return own;
-  if (p === '/player') return { file: 'player.json', type: 'application/json' };
-  if (p === '/deck/formats') return { json: FORMATS };
-  if (p === '/deck/list' || p === '/deck/libraryList') return { xml: DECKS_XML };
-  if (p === '/deck/stats') return { file: 'stats.html', type: 'text/html' };
-  if (p === '/collection') return { file: 'collection-types.xml' };
-  if (p.startsWith('/collection/')) return { xml: collectionXml(url) };
-  if (p === '/league') return { file: 'leagues.xml' };
-  if (p === '/delivery/packContents') return { status: 404 };
-  return null;
-}
-
-async function route(context, log, scenario) {
-  await context.route(/.*/, async (route) => {
-    const request = route.request();
-    const url = new URL(request.url());
-    if (url.origin !== ORIGIN) {
-      if (/\.(jpe?g|png|gif)$/i.test(url.pathname)) {
-        return route.fulfill({ contentType: 'image/svg+xml', body: placeholder(url) });
-      }
-      return route.fulfill({ status: 404, body: '' });
-    }
-    if (url.pathname.startsWith('/gemp-lotr-server/')) {
-      const answer = serverAnswer(url, request, scenario);
-      if (!answer) {
-        log.push(`unanswered ${request.method()} ${url.pathname}`);
-        return route.fulfill({ status: 404, body: '' });
-      }
-      if (answer.status) return route.fulfill({ status: answer.status, body: '' });
-      if (answer.json) return route.fulfill({ contentType: 'application/json', body: JSON.stringify(answer.json) });
-      if (answer.xml) return route.fulfill({ contentType: 'application/xml', body: answer.xml });
-      return route.fulfill({
-        path: path.join(RESPONSES, answer.file),
-        contentType: answer.type ?? 'application/xml',
-      });
-    }
-    let file;
-    if (url.pathname.startsWith('/gemp-lotr/ng/')) {
-      file = path.join(BUILD, url.pathname.slice('/gemp-lotr/ng/'.length));
-      // As the server does (WebRequestHandler): an app route (no extension) that isn't a file serves the app's index
-      const route = !path.basename(url.pathname).includes('.') || url.pathname.endsWith('/');
-      if (route && (!fs.existsSync(file) || fs.statSync(file).isDirectory())) file = path.join(BUILD, 'index.html');
-    } else {
-      file = path.join(WEB, url.pathname.replace(/^\/gemp-lotr\//, ''));
-    }
-    if (!fs.existsSync(file) || fs.statSync(file).isDirectory()) {
-      if (/\.(jpe?g|png|gif)$/i.test(url.pathname)) {
-        return route.fulfill({ contentType: 'image/svg+xml', body: placeholder(url) });
-      }
-      log.push(`missing ${url.pathname}`);
-      return route.fulfill({ status: 404, body: '' });
-    }
-    return route.fulfill({ path: file, contentType: TYPES[path.extname(file)] ?? 'application/octet-stream' });
+if (options.compare) {
+  if (positionals.length !== 2) {
+    console.error('usage: node stubbed.mjs --compare <dirA> <dirB> [--threshold 2] [--tolerance 0]');
+    process.exit(2);
+  }
+  const failed = compareDirs(positionals[0], positionals[1], {
+    threshold: Number(options.threshold),
+    tolerance: Number(options.tolerance),
   });
+  process.exit(failed ? 1 : 0);
 }
 
-/** Rests the mouse on a card past the hover zoom's delay. */
-async function hover(page, selector) {
-  await page.hover(selector);
-  await page.waitForTimeout(800);
+const list = (value) => (value ? new Set(value.split(',').map((s) => s.trim())) : null);
+const pageNames = list(options.page);
+const scenarioNames = list(options.scenario ?? options.only);
+const pages = PAGES.filter((p) => !pageNames || pageNames.has(p.name));
+for (const name of pageNames ?? []) {
+  if (!PAGES.some((p) => p.name === name)) {
+    console.error(`unknown page ${name} (pages: ${PAGES.map((p) => p.name).join(', ')})`);
+    process.exit(2);
+  }
 }
 
-/** Each scenario runs on a freshly loaded page; `act` does the same thing on both. */
-export const STUBBED_SCENARIOS = [
-  { name: 'collection', act: async () => {} },
-  {
-    name: 'second-page',
-    act: async (page, which) => {
-      await page.click(CONTROLS.nextPage[which]);
-    },
-  },
-  {
-    name: 'shadow-filter',
-    act: async (page, which) => {
-      await page.selectOption(CONTROLS.side[which], 'SHADOW');
-    },
-  },
-  {
-    name: 'deck',
-    act: async (page, which) => {
-      await addDeck(page, which);
-    },
-  },
-  {
-    name: 'zoom-deck',
-    act: async (page, which) => {
-      await addDeck(page, which);
-      await hover(page, CONTROLS.deckCard('LOTR01005')[which]);
-    },
-  },
-  {
-    name: 'zoom-collection',
-    act: async (page, which) => {
-      await hover(page, CONTROLS.collectionCard('LOTR01006')[which]);
-    },
-  },
-  {
-    name: 'card-info',
-    act: async (page, which) => {
-      await page.locator(CONTROLS.firstCard[which]).nth(2).click({ button: 'right' });
-    },
-  },
-  {
-    name: 'pane-collection',
-    act: async (page, which) => {
-      if (which === 'angular') await showTab(page, 'collection');
-    },
-  },
-  {
-    name: 'pane-deck',
-    act: async (page, which) => {
-      if (which === 'angular') await addDeck(page, which);
-    },
-  },
-  {
-    name: 'info-button',
-    act: async (page, which) => {
-      if (which !== 'angular') return;
-      await showTab(page, 'collection');
-      await settle(page);
-      const info = page.locator('.gd-collection .gd-card').nth(2).locator('.gd-card__info');
-      if (await info.isVisible()) await info.click();
-    },
-  },
-  {
-    name: 'deck-list',
-    act: async (page, which) => {
-      await page.click(CONTROLS.deckList[which]);
-    },
-  },
-  {
-    name: 'library',
-    act: async (page, which) => {
-      await page.click(CONTROLS.library[which]);
-    },
-  },
-  {
-    name: 'import',
-    act: async (page, which) => {
-      await page.click(CONTROLS.importDeck[which]);
-    },
-  },
-  {
-    name: 'import-typed',
-    act: async (page, which) => {
-      await page.click(CONTROLS.importDeck[which]);
-      await page.waitForTimeout(200);
-      await page.fill(which === 'legacy' ? '#deckImport' : '.gd-import__text', '1x Gandalf\n3x Aragorn');
-      await page.mouse.move(0, 0);
-    },
-  },
-  {
-    name: 'notes',
-    act: async (page, which) => {
-      await page.click(CONTROLS.notes[which]);
-    },
-  },
-  {
-    name: 'selection',
-    act: async (page, which) => {
-      await page.locator(CONTROLS.selectionPack[which]).nth(1).click();
-    },
-  },
-  {
-    name: 'delivery',
-    answers: { '/delivery/packContents': { file: 'pack-delivery.xml' } },
-    act: async () => {},
-  },
-  /* The settings dialog (the Angular page's toolbar button; the legacy page had none, so its side is as loaded) */
-  {
-    name: 'settings',
-    act: async (page, which) => {
-      if (which === 'angular') await page.click(CONTROLS.settings[which]);
-    },
-  },
-  /*
-   * The legacy page asked with the browser's own dialogs, which a screenshot doesn't show (Playwright answers them);
-   * the legacy side shows the page behind them.
-   */
-  {
-    name: 'confirm',
-    act: async (page, which) => {
-      await page.click(CONTROLS.deckList[which]);
-      await page.waitForTimeout(300);
-      await page.locator(CONTROLS.deleteDeck[which]).first().click();
-    },
-  },
-  {
-    name: 'prompt',
-    act: async (page, which) => {
-      await page.click(CONTROLS.deckList[which]);
-      await page.waitForTimeout(300);
-      await page.locator(CONTROLS.renameListedDeck[which]).first().click();
-    },
-  },
-];
+const sizes = (options.viewport ?? options.sizes ?? 'desktop').split(',').map((s) => {
+  const label = VIEWPORTS[s] ?? s;
+  const [width, height] = label.split('x').map(Number);
+  if (!width || !height) {
+    console.error(`bad viewport ${s} (WxH or ${Object.keys(VIEWPORTS).join(', ')})`);
+    process.exit(2);
+  }
+  return { width, height, label };
+});
 
 /**
- * A few cards in the deck: Free Peoples and Shadow cards from the first page (one of them three times, so copies show
- * behind it) and three sites from the last page (12 items a page).
+ * The Angular page's address: --angular as a path (starting with /) replaces the page's, as a query (?a=b or a=b)
+ * is added to it; then ?theme=<--theme>, unless the address names a theme.
  */
-/** Chooses a pane in the Angular page's tab bar, when the theme shows it; true if it did. */
-async function showTab(page, pane) {
-  const tab = page.locator(`.gd-page__tab[data-pane="${pane}"]`);
-  if (!(await tab.isVisible())) return false;
-  await tab.click();
-  return true;
+function angularAddress(page) {
+  let address = page.angular;
+  const given = options.angular;
+  if (given?.startsWith('/')) address = given;
+  else if (given) address += (address.includes('?') ? '&' : '?') + given.replace(/^\?/, '');
+  const url = new URL(address, ORIGIN);
+  if (!url.searchParams.has('theme')) url.searchParams.set('theme', options.theme);
+  return url.pathname + url.search;
 }
 
-async function addDeck(page, which) {
-  const tabs = which === 'angular' && (await showTab(page, 'collection'));
-  const cards = page.locator(CONTROLS.firstCard[which]);
-  for (const index of [2, 3, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11]) {
-    await cards.nth(index).click();
-    await page.waitForTimeout(50);
-  }
-  for (let i = 0; i < 5; i++) {
-    await page.click(CONTROLS.nextPage[which]);
-    await settle(page);
-  }
-  for (const index of [2, 3, 4]) {
-    await cards.nth(index).click();
-    await page.waitForTimeout(50);
-  }
-  if (tabs) await showTab(page, 'deck');
-}
-
-async function settle(page) {
-  await page.waitForLoadState('networkidle');
-  await page.waitForTimeout(400);
-}
-
-const sizes = options.sizes.split(',').map((s) => {
-  const [width, height] = s.split('x').map(Number);
-  return { width, height, label: s };
-});
-const only = options.only ? new Set(options.only.split(',')) : null;
 const outDir = path.resolve(HERE, options.out);
 fs.rmSync(outDir, { recursive: true, force: true });
 fs.mkdirSync(outDir, { recursive: true });
 
+const { chromium } = await import('playwright');
 const browser = await chromium.launch();
-for (const size of sizes) {
-  for (const scenario of STUBBED_SCENARIOS.filter((s) => !only || only.has(s.name))) {
-    for (const [which, address] of [
-      ['legacy', options.legacy],
-      ['angular', options.angular],
-    ]) {
-      const context = await browser.newContext({
-        viewport: { width: size.width, height: size.height },
-        ...(options.touch ? { isMobile: true, hasTouch: true } : {}),
-      });
-      const log = [];
-      await route(context, log, scenario);
-      const page = await context.newPage();
-      page.on('pageerror', (error) => log.push(`page error: ${error.message}`));
-      await page.goto(ORIGIN + address);
-      await settle(page);
-      await scenario.act(page, which);
-      await settle(page);
-      const file = path.join(outDir, `${scenario.name}-${size.label}-${which}.png`);
-      await page.screenshot({ path: file });
-      console.log(`${file}${log.length ? `\n  ${[...new Set(log)].join('\n  ')}` : ''}`);
-      await context.close();
+const timeout = Number(options.timeout);
+const failures = [];
+let shots = 0;
+for (const page of pages) {
+  const angular = angularAddress(page);
+  const theme = new URL(angular, ORIGIN).searchParams.get('theme');
+  for (const size of sizes) {
+    const mode = { theme, touch: options.touch, width: size.width, height: size.height };
+    for (const scenario of page.scenarios.filter((s) => !scenarioNames || scenarioNames.has(s.name))) {
+      const skipped = page.skip?.(scenario, mode) || scenario.skip?.(mode);
+      if (skipped) {
+        console.log(`skip ${page.name}/${scenario.name} ${size.label}: ${skipped}`);
+        continue;
+      }
+      const sides = [...(page.legacy ? [['legacy', options.legacy ?? page.legacy]] : []), ['angular', angular]];
+      for (const [which, address] of sides) {
+        const context = await browser.newContext({
+          viewport: { width: size.width, height: size.height },
+          ...(options.touch ? { isMobile: true, hasTouch: true } : {}),
+        });
+        context.setDefaultTimeout(timeout);
+        const log = [];
+        await route(context, log, page.answer, scenario);
+        const tab = await context.newPage();
+        tab.on('pageerror', (error) => log.push(`page error: ${error.message}`));
+        const file = path.join(outDir, `${page.prefix ?? `${page.name}-`}${scenario.name}-${size.label}-${which}.png`);
+        try {
+          await tab.goto(ORIGIN + address);
+          await settle(tab);
+          if (which === 'angular' || !scenario.angularOnly) await scenario.act(tab, which);
+          await settle(tab);
+          await tab.screenshot({ path: file });
+          shots++;
+          console.log(`${file}${log.length ? `\n  ${[...new Set(log)].join('\n  ')}` : ''}`);
+        } catch (error) {
+          failures.push(`${page.name}/${scenario.name} ${size.label} ${which}: ${error.message.split('\n')[0]}`);
+          console.log(`FAILED ${failures.at(-1)}`);
+        }
+        await context.close();
+      }
     }
   }
 }
 await browser.close();
+console.log(
+  `${shots} screenshots in ${outDir}, ${failures.length} failed${failures.length ? `:\n  ${failures.join('\n  ')}` : ''}`,
+);
+process.exit(failures.length ? 1 : 0);
