@@ -1,0 +1,493 @@
+/*
+ * The modern theme's draft parts, shared by the solo and the table draft (imported by solo-draft.css and
+ * table-draft.css, so it is in each page's bundle): the page frame and its panels, the status bar (the message line),
+ * the inline alert, the separator, the picks on offer (gd-draft-picks: a prominent row of large cards, the declared
+ * one marked), the drafted cards (gd-drafted-pool: a compact grid in the server's order, so grouped by card type and
+ * culture) and the phone tab bar. Each page places the panels in its grid.
+ *
+ * Windows of at least 768px (desktops and tablets) show the picks above the drafted cards, with the separator
+ * between; phones show one pane at a time, chosen in the tab bar at the bottom, the picks two to a row and the
+ * drafted cards four (three on the narrowest phones), scrolling.
+ */
+
+/* ---------------------------------------------------------------- page frame and panels */
+
+.gd-solo-draft,
+.gd-table-draft {
+  --m-draft-pad: var(--m-space-3);
+  position: fixed;
+  inset: var(--m-shell-top) 0 0;
+  display: grid;
+  gap: var(--m-space-2);
+  padding: var(--m-draft-pad) max(var(--m-draft-pad), var(--m-safe-right)) max(var(--m-draft-pad), var(--m-safe-bottom))
+    max(var(--m-draft-pad), var(--m-safe-left));
+  box-sizing: border-box;
+  background: var(--m-bg);
+  color: var(--m-text);
+  font-family: var(--m-font);
+  font-size: var(--m-font-size);
+}
+
+.gd-solo-draft__picks,
+.gd-solo-draft__drafted,
+.gd-table-draft__picks,
+.gd-table-draft__drafted,
+.gd-table-draft__chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-3);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--m-space-3) var(--m-space-4) var(--m-space-4);
+  box-sizing: border-box;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-lg);
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-sm);
+}
+
+.gd-solo-draft__picks[hidden],
+.gd-table-draft__picks[hidden] {
+  display: none;
+}
+
+/* The drafted cards' heading, the count as a pill */
+.gd-solo-draft__heading,
+.gd-table-draft__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-2);
+  margin: 0;
+  color: var(--m-text-muted);
+  font: 600 var(--m-font-size-sm) / 1.2 var(--m-font);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.gd-solo-draft__count,
+.gd-table-draft__count {
+  min-width: 22px;
+  padding: 2px 8px;
+  box-sizing: border-box;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-surface-3);
+  color: var(--m-text);
+  font-size: var(--m-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------------- the status bar (the message line) */
+
+.gd-solo-draft__message,
+.gd-table-draft__message {
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-2);
+  min-height: var(--m-control-height);
+  margin: 0;
+  padding: 0 var(--m-space-3);
+  box-sizing: border-box;
+  border-radius: var(--m-radius);
+  background: var(--m-surface-2);
+  color: var(--m-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.gd-solo-draft__message:empty,
+.gd-table-draft__message:empty {
+  display: none;
+}
+
+/* The state's dot: the accent while picking, warning while waiting, success once finished, muted otherwise */
+.gd-solo-draft__message::before,
+.gd-table-draft__message::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--m-dot, var(--m-text-faint));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--m-dot, var(--m-text-faint)) 22%, transparent);
+}
+
+:is(.gd-solo-draft, .gd-table-draft)[data-state='picking'] {
+  --m-dot: var(--m-accent);
+}
+
+:is(.gd-solo-draft, .gd-table-draft)[data-state='waiting'] {
+  --m-dot: var(--m-warning);
+}
+
+:is(.gd-solo-draft, .gd-table-draft)[data-state='finished'] {
+  --m-dot: var(--m-success);
+}
+
+:is(.gd-solo-draft, .gd-table-draft):is([data-state='error'], [data-state='lost']) {
+  --m-dot: var(--m-danger);
+}
+
+:is(.gd-solo-draft, .gd-table-draft):is([data-state='waiting'], [data-state='loading'], [data-busy])
+  :is(.gd-solo-draft__message, .gd-table-draft__message)::before {
+  animation: m-draft-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes m-draft-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.gd-solo-draft__message, .gd-table-draft__message)::before {
+    animation: none !important;
+  }
+}
+
+/* ---------------------------------------------------------------- the inline alert (errors, lost notices) */
+
+.gd-solo-draft__error,
+.gd-table-draft__notices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--m-space-2) var(--m-space-3);
+  padding: var(--m-space-2) var(--m-space-2) var(--m-space-2) var(--m-space-3);
+  border: 1px solid color-mix(in srgb, var(--m-danger) 45%, transparent);
+  border-left-width: 4px;
+  border-radius: var(--m-radius);
+  background: color-mix(in srgb, var(--m-danger) 10%, var(--m-surface));
+  color: var(--m-text);
+}
+
+.gd-solo-draft__error-text,
+.gd-table-draft__notice {
+  flex: 1 1 16em;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.gd-solo-draft__retry,
+.gd-table-draft__retry {
+  margin-left: auto;
+  border-color: var(--m-danger);
+  color: var(--m-danger);
+}
+
+/* ---------------------------------------------------------------- the separator (resizes the picks) */
+
+.gd-solo-draft__separator,
+.gd-table-draft__separator {
+  position: relative;
+  margin: 0 var(--m-space-5);
+  border-radius: var(--m-radius-pill);
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.gd-solo-draft__separator::before,
+.gd-table-draft__separator::before {
+  content: '';
+  position: absolute;
+  inset: calc(50% - 1px) 0 auto;
+  height: 2px;
+  border-radius: var(--m-radius-pill);
+  background: transparent;
+  transition: background-color var(--m-transition);
+}
+
+:is(.gd-solo-draft__separator, .gd-table-draft__separator):is(:hover, [data-dragging])::before {
+  background: var(--m-accent-soft);
+}
+
+:is(.gd-solo-draft__separator, .gd-table-draft__separator):focus-visible {
+  outline: 2px solid var(--m-focus);
+  outline-offset: 0;
+}
+
+.gd-solo-draft__toggle,
+.gd-table-draft__toggle {
+  position: absolute;
+  left: calc(50% - 28px);
+  top: calc(50% - 3px);
+  width: 56px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-border-strong);
+  cursor: pointer;
+  transition: background-color var(--m-transition);
+}
+
+.gd-solo-draft__toggle:hover,
+.gd-table-draft__toggle:hover {
+  background: var(--m-accent);
+}
+
+/* A 44px target around the handle */
+.gd-solo-draft__toggle::after,
+.gd-table-draft__toggle::after {
+  content: '';
+  position: absolute;
+  inset: -19px -4px;
+}
+
+/* ---------------------------------------------------------------- the cards */
+
+/* The cards' ⓘ only on touch screens (below) */
+:is(.gd-solo-draft, .gd-table-draft) .gd-card > .gd-card__info {
+  display: none;
+}
+
+.gd-draft-picks,
+.gd-drafted-pool {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.gd-draft-picks__cards,
+.gd-drafted-pool__cards {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+/* The picks: as large as fit, up to 320px, centred */
+.gd-draft-picks__cards {
+  --gd-card-max-height: 320px;
+  --gd-card-gap: 16px;
+  --gd-card-fit: contain;
+  align-content: center;
+  justify-content: center;
+  padding: 6px 0;
+}
+
+.gd-draft-picks .gd-card:hover {
+  transform: translateY(-5px);
+}
+
+/* The card declared for the pick (table draft): lifted, ringed and labelled */
+.gd-draft-picks .gd-card[data-chosen] {
+  z-index: 1;
+  outline: 3px solid var(--m-accent);
+  outline-offset: 3px;
+  transform: translateY(-5px);
+  box-shadow: var(--m-card-shadow-hover);
+}
+
+.gd-draft-picks .gd-card[data-chosen]::before {
+  content: '✓ Picked';
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: -12px;
+  padding: 3px 10px;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+  font: 700 var(--m-font-size-xs) / 1.2 var(--m-font);
+  white-space: nowrap;
+  box-shadow: var(--m-shadow);
+  transform: translateX(-50%);
+}
+
+/* While a pick is under way the picks wait */
+:is(.gd-solo-draft, .gd-table-draft)[data-busy] .gd-draft-picks .gd-card {
+  pointer-events: none;
+  cursor: progress;
+}
+
+:is(.gd-solo-draft, .gd-table-draft)[data-busy] .gd-draft-picks .gd-card:not([data-chosen]) {
+  opacity: 0.55;
+}
+
+/* The drafted cards: a compact grid, at most 150px high, scrolling once full */
+.gd-drafted-pool__cards {
+  --gd-card-max-height: 150px;
+  --gd-card-gap: 8px;
+  --gd-card-fit: none;
+  align-content: flex-start;
+  padding: 4px 2px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.gd-drafted-pool__empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  margin: 0;
+  border: 1px dashed var(--m-border-strong);
+  border-radius: var(--m-radius);
+  color: var(--m-text-muted);
+}
+
+/* ---------------------------------------------------------------- the tab bar (phones only) */
+
+:is(.gd-solo-draft, .gd-table-draft) .gd-page__tabs {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- touch screens */
+
+@media (pointer: coarse) {
+  /* A taller separator to drag */
+  :is(.gd-solo-draft, .gd-table-draft) {
+    --m-separator: 20px;
+  }
+
+  /* The cards' ⓘ: their details with a tap */
+  :is(.gd-solo-draft, .gd-table-draft) .gd-card > .gd-card__info {
+    inset: auto 4px 4px auto;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgb(12 14 20 / 0.72);
+    box-shadow: 0 0 0 1.5px rgb(255 255 255 / 0.85);
+    color: #fff;
+    font:
+      italic 700 15px / 1 Georgia,
+      'Times New Roman',
+      serif;
+  }
+
+  :is(.gd-solo-draft, .gd-table-draft) .gd-card > .gd-card__info::before {
+    content: 'i';
+  }
+
+  /* A 44px target around the 26px mark */
+  :is(.gd-solo-draft, .gd-table-draft) .gd-card > .gd-card__info::after {
+    content: '';
+    position: absolute;
+    inset: -9px;
+  }
+
+  .gd-draft-picks .gd-card:hover,
+  .gd-drafted-pool .gd-card:hover {
+    transform: none;
+  }
+
+  .gd-draft-picks .gd-card[data-chosen]:hover {
+    transform: translateY(-5px);
+  }
+}
+
+/* ---------------------------------------------------------------- phones */
+
+/*
+ * Under 768px one pane at a time fills the page above the tab bar (fixed at the bottom, clear of the home
+ * indicator); the separator is not used. The cards scroll: the picks two to a row, the drafted cards four (three
+ * under 360px), sized from the box's width (a container), not by fitCards.
+ */
+@media (max-width: 767.98px) {
+  .gd-solo-draft,
+  .gd-table-draft {
+    --m-draft-pad: var(--m-space-2);
+    padding-bottom: 0;
+  }
+
+  .gd-solo-draft__picks,
+  .gd-solo-draft__drafted,
+  .gd-table-draft__picks,
+  .gd-table-draft__drafted,
+  .gd-table-draft__chat {
+    padding: var(--m-space-3);
+    border-radius: var(--m-radius);
+  }
+
+  .gd-solo-draft__separator,
+  .gd-table-draft__separator {
+    display: none;
+  }
+
+  .gd-draft-picks__cards,
+  .gd-drafted-pool__cards {
+    container-type: inline-size;
+    align-content: flex-start;
+    justify-content: flex-start;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .gd-draft-picks__cards {
+    --gd-card-gap: 12px;
+    --m-cols: 2;
+    padding: 14px 2px 6px;
+  }
+
+  .gd-drafted-pool__cards {
+    --gd-card-gap: 6px;
+    --m-cols: 4;
+  }
+
+  /* Every card (upright or landscape) a column wide */
+  .gd-draft-picks .gd-card,
+  .gd-draft-picks .gd-card[data-orientation],
+  .gd-drafted-pool .gd-card,
+  .gd-drafted-pool .gd-card[data-orientation] {
+    --gd-card-width: round(down, calc((100cqw - (var(--m-cols) - 1) * var(--gd-card-gap)) / var(--m-cols)), 1px);
+  }
+
+  @container (max-width: 335px) {
+    .gd-drafted-pool .gd-card,
+    .gd-drafted-pool .gd-card[data-orientation] {
+      --m-cols: 3;
+    }
+  }
+
+  /* The tab bar */
+  :is(.gd-solo-draft, .gd-table-draft) .gd-page__tabs {
+    display: flex;
+    margin: 0 calc(-1 * max(var(--m-draft-pad), var(--m-safe-right))) 0
+      calc(-1 * max(var(--m-draft-pad), var(--m-safe-left)));
+    padding: 0 var(--m-safe-right) var(--m-safe-bottom) var(--m-safe-left);
+    border-top: 1px solid var(--m-border);
+    background: var(--m-surface);
+    box-shadow: 0 -4px 16px rgb(0 0 0 / 0.12);
+  }
+
+  :is(.gd-solo-draft, .gd-table-draft) .gd-page__tab {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 52px;
+    padding: 0 var(--m-space-2);
+    border: 0;
+    background: none;
+    color: var(--m-text-muted);
+    font: 600 var(--m-font-size-sm) / 1 var(--m-font);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--m-transition);
+  }
+
+  /* The chosen tab: accent text with a bar along its top */
+  :is(.gd-solo-draft, .gd-table-draft) .gd-page__tab[aria-selected='true'] {
+    color: var(--m-accent);
+  }
+
+  :is(.gd-solo-draft, .gd-table-draft) .gd-page__tab[aria-selected='true']::before {
+    content: '';
+    position: absolute;
+    left: 25%;
+    right: 25%;
+    top: -1px;
+    height: 3px;
+    border-radius: 0 0 3px 3px;
+    background: var(--m-accent);
+  }
+
+  :is(.gd-solo-draft, .gd-table-draft) .gd-page__tab:focus-visible {
+    outline: 2px solid var(--m-focus);
+    outline-offset: -4px;
+  }
+}
