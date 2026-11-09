@@ -1,150 +1,621 @@
 /*
- * The modern theme's merchant, built into theme-modern-merchant.css: a minimal placeholder that keeps the page usable
- * (the filter above the offers, the buttons under each card) until the modern design of the merchant is done.
+ * The modern theme's merchant, built into theme-modern-merchant.css: ThemeService loads it after the theme's base
+ * (base.css, with the tokens), on the merchant page only.
+ *
+ * The filter is a flat toolbar above the offers: the pager with the player's coins, "Owned >=" and "Hide merchant",
+ * then the fields, then the culture chips and the Wiki link; it wraps as the window narrows. The offers are tiles in
+ * a grid that scrolls: the card, then its "Sell for" / "Buy for" / "Trade 4 for foil" rows. Phones (under 768px) fold
+ * the filter's details away behind its "Filters" toggle and show two tiles to a row; tablets three or four. Touch
+ * screens get 44px targets; the page keeps clear of notches and the home indicator with the safe-area insets.
  */
 
-.gd-merchant {
-  position: fixed;
-  inset: var(--m-shell-top, 0) 0 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--m-space-3, 12px);
-  padding: var(--m-space-3, 12px);
+/* The cards' ⓘ spot is not used: using a card shows its details */
+.gd-merchant .gd-card > .gd-card__info {
+  display: none;
 }
 
+/* ---------------------------------------------------------------- page frame */
+
+.gd-merchant {
+  --m-pad: var(--m-space-4);
+  --m-tile-min: 150px;
+  position: fixed;
+  inset: var(--m-shell-top) 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  background: var(--m-bg);
+}
+
+.gd-merchant__filter {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  padding: var(--m-space-3) max(var(--m-pad), var(--m-safe-right)) var(--m-space-3)
+    max(var(--m-pad), var(--m-safe-left));
+  border-bottom: 1px solid var(--m-border);
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-sm);
+}
+
+.gd-merchant__offers {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* ---------------------------------------------------------------- the filter: a toolbar */
+
+/*
+ * One flex row that wraps, its items placed with `order`: the pager, the coins, "Owned >=" and "Hide merchant"; a
+ * break; the fields (set, name, sort, rarity, then card type and the rest); a break; the cultures and the Wiki link.
+ * The fields' and the cultures' boxes are `display: contents` so their controls are items of the row.
+ */
 .gd-merchant-filter {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--m-space-2, 8px);
+  gap: var(--m-space-2);
+}
+
+.gd-merchant-filter::before,
+.gd-merchant-filter::after {
+  content: '';
+  flex: 1 0 100%;
+  height: 0;
+  margin-block: calc(var(--m-space-1) / -2);
 }
 
 .gd-merchant-filter > .gd-pager {
-  flex: 1 1 100%;
+  order: 1;
+}
+
+.gd-merchant-filter__pocket {
+  order: 2;
+}
+
+.gd-merchant-filter__owned {
+  order: 3;
+}
+
+.gd-merchant-filter__hide {
+  order: 4;
+}
+
+.gd-merchant-filter::before {
+  order: 5;
+}
+
+.gd-merchant-filter__inputs > * {
+  order: 6;
+}
+
+.gd-merchant-filter__selects > * {
+  order: 7;
+}
+
+.gd-merchant-filter::after {
+  order: 8;
+}
+
+.gd-cultures {
+  order: 9;
+}
+
+.gd-merchant-filter__wiki {
+  order: 10;
+}
+
+.gd-merchant-filter__toggle {
+  order: 11;
+  display: none;
+}
+
+.gd-merchant-filter__inputs,
+.gd-merchant-filter__details,
+.gd-merchant-filter__selects {
+  display: contents;
+}
+
+/* The pager: as wide as the row lets it */
+.gd-merchant-filter > .gd-pager {
+  flex: 1 1 260px;
   display: flex;
   align-items: center;
-  gap: var(--m-space-2, 8px);
+  gap: var(--m-space-2);
+  min-width: 0;
 }
 
 .gd-pager__track {
   flex: 1 1 auto;
   display: flex;
+  min-width: 0;
 }
 
 .gd-pager__size {
   flex: 1 1 auto;
+  min-width: 0;
 }
 
-.gd-merchant-filter__inputs,
-.gd-merchant-filter__details,
-.gd-merchant-filter__selects,
-.gd-cultures,
-.gd-cultures__group {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--m-space-1, 4px);
-}
-
+/* The fields: their names are visually hidden (each select's first option says what it is) */
 .gd-merchant-field__label,
-.gd-merchant-filter__pocket-label,
-.gd-culture__input {
+.gd-merchant-filter__pocket-label {
   position: absolute;
   width: 1px;
   height: 1px;
   overflow: hidden;
   clip-path: inset(50%);
-}
-
-.gd-merchant-filter__wiki {
-  margin: 0;
-}
-
-.gd-merchant-filter__toggle {
-  display: none;
-}
-
-.gd-culture {
-  display: inline-flex;
-  padding: 2px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.gd-culture[data-active] {
-  outline: 2px solid currentColor;
-}
-
-.gd-culture__icon {
-  height: 20px;
-}
-
-.gd-price__gold::after {
-  content: ' G';
-}
-
-.gd-price__silver::after {
-  content: ' S';
-}
-
-.gd-merchant-grid {
-  display: flex;
-  min-height: 0;
-}
-
-.gd-merchant-grid__cards {
-  --gd-card-max-height: 300px;
-  --gd-card-gap: 8px;
-  flex: 1 1 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-  gap: var(--gd-card-gap);
-  min-height: 0;
-  overflow: auto;
-}
-
-.gd-offer {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  width: min-content;
-}
-
-.gd-offer .gd-card__count {
-  inset: auto auto 4px 4px;
-  width: auto;
-  height: auto;
-  padding: 0 6px;
-}
-
-.gd-offer__action {
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
   white-space: nowrap;
 }
 
-.gd-offer__action[data-unaffordable] {
-  color: #c00;
+.gd-merchant-field {
+  display: flex;
+  min-width: 0;
 }
 
-.gd-dialog[data-dialog='merchant-question'] .gd-merchant-question {
+.gd-merchant-field > select,
+.gd-merchant-field > input {
+  width: 100%;
+}
+
+.gd-merchant-field[data-field='set'] {
+  flex: 0 1 190px;
+}
+
+.gd-merchant-field[data-field='name'] {
+  flex: 1 1 180px;
+  max-width: 260px;
+}
+
+.gd-merchant-field:is([data-field='sort'], [data-field='rarity'], [data-field='product']) {
+  flex: 0 1 120px;
+}
+
+.gd-merchant-field:is([data-field='cardType'], [data-field='keyword']) {
+  flex: 0 1 170px;
+}
+
+.gd-merchant-field:is([data-field='race'], [data-field='itemClass'], [data-field='phase']) {
+  flex: 0 1 150px;
+}
+
+/* The search field: a magnifier in front */
+.gd-merchant-field[data-field='name'] > input {
+  padding-left: 30px;
+  background: var(--m-surface) no-repeat left 9px center / 14px 14px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa2b1' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><path d='M20 20l-3.5-3.5'/></svg>");
+}
+
+.gd-merchant-filter select:hover:enabled,
+.gd-merchant-filter input[type='text']:hover {
+  border-color: var(--m-border-strong);
+}
+
+.gd-merchant-filter select:focus-visible,
+.gd-merchant-filter input[type='text']:focus-visible {
+  border-color: var(--m-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--m-accent-soft);
+}
+
+/* The player's coins: a chip, pushed to the right of the pager */
+.gd-merchant-filter__pocket {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: var(--m-control-height);
+  margin-left: auto;
+  padding: 0 var(--m-space-3);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-pill);
+  background: var(--m-surface-2);
+  font-weight: 600;
+}
+
+.gd-merchant-filter__pocket:not(:has(.gd-price)) {
+  display: none;
+}
+
+/* "Owned >=" and "Hide merchant": a label and its control */
+.gd-merchant-filter__owned,
+.gd-merchant-filter__hide {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--m-space-2);
+  min-height: var(--m-control-height);
+  color: var(--m-text-muted);
+  font-size: var(--m-font-size-sm);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.gd-merchant-filter__owned > select {
+  width: 64px;
+}
+
+/* "Hide merchant": a switch */
+.gd-merchant-filter__hide > input {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 20px;
+  margin: 0;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-border-strong);
+  appearance: none;
+  cursor: pointer;
+  transition: background-color var(--m-transition);
+}
+
+.gd-merchant-filter__hide > input::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--m-shadow-sm);
+  transition: transform var(--m-transition);
+}
+
+.gd-merchant-filter__hide > input:checked {
+  background: var(--m-accent);
+}
+
+.gd-merchant-filter__hide > input:checked::before {
+  transform: translateX(14px);
+}
+
+.gd-merchant-filter__hide:hover,
+.gd-merchant-filter__owned:hover {
+  color: var(--m-text);
+}
+
+/* The Wiki's card search: a quiet link at the end of the cultures */
+.gd-merchant-filter__wiki {
+  margin: 0 0 0 auto;
+  color: var(--m-text-faint);
+  font-size: var(--m-font-size-xs);
+  line-height: 1.35;
+  text-align: right;
+}
+
+.gd-merchant-filter__wiki > a {
+  color: var(--m-text-muted);
+  text-decoration: none;
+}
+
+.gd-merchant-filter__wiki > a:hover {
+  color: var(--m-accent);
+  text-decoration: underline;
+}
+
+/* The culture toggles: chips */
+.gd-cultures {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--m-space-3, 12px);
+  gap: var(--m-space-1);
+  min-width: 0;
+}
+
+.gd-cultures__group {
+  display: contents;
+}
+
+.gd-culture {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 34px;
+  height: 32px;
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-sm);
+  background: var(--m-surface-2);
+  cursor: pointer;
+  transition:
+    background-color var(--m-transition),
+    border-color var(--m-transition);
+}
+
+.gd-culture:hover {
+  border-color: var(--m-border-strong);
+  background: var(--m-surface-3);
+}
+
+.gd-culture:has(.gd-culture__input:focus-visible) {
+  outline: 2px solid var(--m-focus);
+  outline-offset: 2px;
+}
+
+.gd-culture[data-active] {
+  border-color: var(--m-accent);
+  background: var(--m-accent-soft);
+  box-shadow: inset 0 0 0 1px var(--m-accent);
+}
+
+/* The Hobbit cultures, when shown: set apart from the others */
+.gd-cultures__group[data-group='hobbit'] > .gd-culture:first-child {
+  margin-left: var(--m-space-2);
+}
+
+.gd-culture__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The legacy culture images are white: kept so on dark, darkened on light */
+.gd-culture__icon {
+  max-width: 24px;
+  max-height: 20px;
+  object-fit: contain;
+  filter: var(--m-white-icon-filter);
+  opacity: 0.7;
+  transition: opacity var(--m-transition);
+}
+
+.gd-culture:hover .gd-culture__icon,
+.gd-culture[data-active] .gd-culture__icon {
+  opacity: 1;
+}
+
+/* The "Filters" toggle (phones): a chevron after its name */
+.gd-merchant-filter__toggle::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask: var(--m-icon-chevron-down) center / contain no-repeat;
+  transition: transform var(--m-transition);
+}
+
+.gd-merchant-filter__toggle[aria-expanded='true'] {
+  border-color: var(--m-accent);
+  background: var(--m-accent-soft);
+  color: var(--m-accent);
+}
+
+.gd-merchant-filter__toggle[aria-expanded='true']::after {
+  transform: rotate(180deg);
+}
+
+/* ---------------------------------------------------------------- prices: numbers and coins */
+
+.gd-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gd-price__gold,
+.gd-price__silver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25em;
+}
+
+.gd-price__gold::after,
+.gd-price__silver::after {
+  content: '';
+  flex: none;
+  width: 0.95em;
+  height: 0.95em;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.18),
+    inset 0 -2px 0 rgb(0 0 0 / 0.12);
+}
+
+.gd-price__gold::after {
+  background: radial-gradient(circle at 35% 30%, #fff3c4 0 18%, var(--m-gold) 55%);
+}
+
+.gd-price__silver::after {
+  background: radial-gradient(circle at 35% 30%, #ffffff 0 18%, var(--m-silver) 60%);
+}
+
+/* ---------------------------------------------------------------- the offers: tiles */
+
+.gd-merchant-grid {
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+
+/* Each tile sizes its card to its own width, so the box's fitted height is not used */
+.gd-merchant-grid__cards {
+  --gd-card-fit: none;
+  --gd-card-max-height: 240px;
+  --gd-card-gap: var(--m-space-3);
+  flex: 1 1 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--m-tile-min), 1fr));
+  align-content: start;
+  gap: var(--m-space-3);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--m-pad) max(var(--m-pad), var(--m-safe-right)) calc(var(--m-pad) + var(--m-safe-bottom))
+    max(var(--m-pad), var(--m-safe-left));
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+}
+
+/* Nothing on the page: say so (only once the page has arrived) */
+.gd-merchant[data-state='ready'] .gd-merchant-grid__cards[data-count='0']::before {
+  content: 'No cards match the filter.';
+  grid-column: 1 / -1;
+  padding: var(--m-space-5) 0;
+  color: var(--m-text-muted);
+  text-align: center;
+}
+
+/* Until the first page arrives: placeholder tiles */
+.gd-merchant[data-state='loading'] .gd-merchant-grid__cards[data-count='0']::before,
+.gd-merchant[data-state='loading'] .gd-merchant-grid__cards[data-count='0']::after {
+  content: '';
+  aspect-ratio: 350 / 560;
+  border-radius: var(--m-radius);
+  background: var(--m-surface-2);
+  animation: m-merchant-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes m-merchant-pulse {
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.gd-offer {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-1);
+  min-width: 0;
+  padding: var(--m-space-2);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-sm);
+}
+
+/* The card fills the tile's width */
+.gd-offer > .gd-card {
+  --gd-card-height: round(down, calc(100cqi * 490 / 350), 1px);
+  align-self: center;
+  margin-bottom: var(--m-space-1);
+}
+
+.gd-offer > .gd-card[data-orientation='horizontal'] {
+  --gd-card-height: 100cqi;
+}
+
+/* A landscape card: centred in the space a portrait one takes, so the rows line up */
+.gd-offer[data-orientation='horizontal'] > .gd-card {
+  margin-block: calc((100cqi * 490 / 350 - 100cqi * 350 / 490) / 2);
+}
+
+.gd-offer > .gd-card:hover {
+  transform: none;
+}
+
+/* The copies owned: the card's badge, faint when none */
+.gd-offer[data-owned='0'] .gd-card__count {
+  background: rgb(10 12 16 / 0.55);
+  color: rgb(255 255 255 / 0.7);
+}
+
+/* The operations: one row each, the name and the price */
+.gd-offer__action.gd-button {
+  justify-content: space-between;
+  width: 100%;
+  min-height: 30px;
+  padding: 0 var(--m-space-2);
+  border-color: transparent;
+  background: var(--m-surface-2);
+  font-weight: 500;
+}
+
+.gd-offer__action.gd-button:enabled:hover {
+  border-color: var(--m-border-strong);
+}
+
+.gd-offer__label {
+  color: var(--m-text-muted);
+}
+
+.gd-offer__action > .gd-price {
+  font-weight: 600;
+}
+
+/* Selling to the merchant earns coins; buying costs them */
+.gd-offer__action[data-action='sell'] .gd-offer__label {
+  color: var(--m-success);
+}
+
+.gd-offer__action[data-action='buy'] .gd-offer__label {
+  color: var(--m-accent);
+}
+
+.gd-offer__action[data-action='trade-foil'] {
+  justify-content: center;
+}
+
+.gd-offer__action[data-action='trade-foil'] .gd-offer__label {
+  color: var(--m-text);
+  background: linear-gradient(90deg, #d36bd8, #6e8bff, #3ecf8e, #f2c14e);
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 600;
+}
+
+/* More than the player has: the price in red, the row inert */
+.gd-offer__action.gd-button[data-unaffordable] {
+  opacity: 1;
+  background: none;
+  border-color: var(--m-border);
+  border-style: dashed;
+}
+
+.gd-offer__action[data-unaffordable] .gd-offer__label {
+  color: var(--m-text-faint);
+}
+
+.gd-offer__action[data-unaffordable] > .gd-price {
+  color: var(--m-danger);
+}
+
+/* While an operation is asked about or under way, the buttons do nothing */
+.gd-merchant[data-busy] .gd-offer__action {
+  cursor: progress;
+}
+
+/* ---------------------------------------------------------------- the "Merchant operation" question */
+
+.gd-dialog[data-dialog='merchant-question'] {
+  --m-dialog-width: 560px;
+  max-width: calc(100vw - 24px);
+  min-height: 0;
+  resize: none;
+}
+
+.gd-merchant-question {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--m-space-4);
+}
+
+.gd-merchant-question__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--m-space-2);
 }
 
 .gd-merchant-question__card {
   position: relative;
-  width: min(357px, 60vw);
-  aspect-ratio: 357 / 497;
+  width: 220px;
+  aspect-ratio: 350 / 490;
   margin: 0;
+  border-radius: 4.5%;
+  background: var(--m-surface-3);
+  box-shadow: var(--m-card-shadow-hover);
 }
 
 .gd-merchant-question__card[data-orientation='horizontal'] {
-  width: min(497px, 80vw);
-  aspect-ratio: 497 / 357;
+  width: 280px;
+  aspect-ratio: 490 / 350;
 }
 
 .gd-merchant-question__card > img {
@@ -152,9 +623,234 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: 5%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.gd-merchant-question__card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 7px solid #0b0c0f;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.gd-merchant-question__card[data-borderless]::after {
+  border-width: 0;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.25);
 }
 
 .gd-merchant-question__foil {
-  opacity: 0.2;
+  opacity: 0.28;
+  mix-blend-mode: screen;
+}
+
+.gd-merchant-question__wiki {
+  font-size: var(--m-font-size-sm);
+}
+
+.gd-merchant-question__text {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: var(--m-space-2);
+}
+
+.gd-merchant-question__message {
+  flex: 1 0 100%;
+  margin: 0 0 var(--m-space-3);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.gd-merchant-question__message > .gd-price {
+  margin-inline: 0.3em;
+  padding: 1px var(--m-space-2);
+  border-radius: var(--m-radius-pill);
+  background: var(--m-surface-3);
+  font-weight: 600;
+  vertical-align: 1px;
+}
+
+.gd-merchant-question__text > .gd-button {
+  flex: 1 1 0;
+  min-width: 90px;
+}
+
+.gd-merchant-question__text > .gd-button[data-action='yes'] {
+  border-color: var(--m-accent);
+  background: var(--m-accent);
+  color: var(--m-on-accent);
+}
+
+.gd-merchant-question__text > .gd-button[data-action='yes']:enabled:hover {
+  border-color: var(--m-accent-hover);
+  background: var(--m-accent-hover);
+}
+
+/* ---------------------------------------------------------------- tablets */
+
+@media (max-width: 1023.98px) {
+  .gd-merchant {
+    --m-pad: var(--m-space-3);
+    --m-tile-min: 170px;
+  }
+}
+
+/* ---------------------------------------------------------------- phones */
+
+/*
+ * The filter shows the pager, the coins, the name and the "Filters" toggle; the toggle unfolds the rest (set, sort,
+ * rarity, the cultures and the other fields, "Owned >=", "Hide merchant" and the Wiki link), which then scrolls if
+ * it is taller than half the screen. Two tiles to a row.
+ */
+@media (max-width: 767.98px) {
+  .gd-merchant {
+    --m-pad: var(--m-space-2);
+    --m-tile-min: 140px;
+  }
+
+  .gd-merchant__filter {
+    max-height: 55dvh;
+    overflow: hidden auto;
+    overscroll-behavior: contain;
+  }
+
+  .gd-merchant-filter::before {
+    order: 3;
+  }
+
+  .gd-merchant-filter > .gd-pager {
+    flex: 1 1 0;
+  }
+
+  .gd-merchant-filter__pocket {
+    order: 2;
+    margin-left: 0;
+  }
+
+  .gd-merchant-field[data-field='name'] {
+    order: 4;
+    flex: 1 1 0;
+    max-width: none;
+  }
+
+  .gd-merchant-filter__toggle {
+    order: 5;
+    display: inline-flex;
+  }
+
+  .gd-merchant-filter::after {
+    order: 5;
+  }
+
+  .gd-merchant-filter__owned {
+    order: 12;
+  }
+
+  .gd-merchant-filter__hide {
+    order: 13;
+  }
+
+  .gd-merchant-filter__wiki {
+    order: 14;
+    flex: 1 0 100%;
+    text-align: left;
+  }
+
+  .gd-merchant-filter .gd-merchant-field:not([data-field='name']) {
+    flex: 1 1 calc(50% - var(--m-space-2));
+    max-width: none;
+  }
+
+  .gd-cultures {
+    flex: 1 0 100%;
+  }
+
+  /* Folded: only the first rows */
+  .gd-merchant-filter:not([data-filters-open])
+    :is(
+      .gd-merchant-filter__inputs > :not([data-field='name']),
+      .gd-merchant-filter__details,
+      .gd-merchant-filter__owned,
+      .gd-merchant-filter__hide,
+      .gd-merchant-filter__wiki
+    ),
+  .gd-merchant-filter:not([data-filters-open])::after {
+    display: none;
+  }
+
+  .gd-merchant-filter__owned {
+    flex: 1 1 auto;
+  }
+
+  .gd-merchant-filter__hide {
+    flex: 1 1 auto;
+    justify-content: flex-end;
+  }
+
+  .gd-offer {
+    padding: 6px;
+  }
+
+  .gd-offer__action.gd-button {
+    font-size: var(--m-font-size-xs);
+  }
+
+  .gd-merchant-question {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+  }
+
+  .gd-merchant-question__card {
+    width: min(180px, 45vw);
+  }
+
+  .gd-merchant-question__card[data-orientation='horizontal'] {
+    width: min(260px, 70vw);
+  }
+
+  .gd-merchant-question__message {
+    text-align: center;
+  }
+}
+
+/* ---------------------------------------------------------------- touch screens: 44px targets */
+
+@media (pointer: coarse) {
+  .gd-culture {
+    width: 44px;
+    height: 44px;
+  }
+
+  .gd-offer__action.gd-button {
+    min-height: var(--m-control-height);
+  }
+
+  .gd-merchant-filter__hide > input {
+    width: 44px;
+    height: 26px;
+  }
+
+  .gd-merchant-filter__hide > input::before {
+    width: 22px;
+    height: 22px;
+  }
+
+  .gd-merchant-filter__hide > input:checked::before {
+    transform: translateX(18px);
+  }
+
+  .gd-merchant-filter__wiki > a {
+    display: inline-block;
+    padding-block: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gd-merchant[data-state='loading'] .gd-merchant-grid__cards::before,
+  .gd-merchant[data-state='loading'] .gd-merchant-grid__cards::after {
+    animation: none;
+  }
 }

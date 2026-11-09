@@ -54,6 +54,11 @@
   --m-card-shadow: 0 1px 3px rgb(0 0 0 / 0.55);
   --m-card-shadow-hover: 0 10px 22px rgb(0 0 0 / 0.6), 0 2px 6px rgb(0 0 0 / 0.4);
   --m-culture-icon-filter: invert(1) brightness(0.95);
+  /* Icons drawn white for the legacy dark pages (the merchant's culture images): kept white, or darkened on light */
+  --m-white-icon-filter: none;
+  /* The merchant's coins */
+  --m-gold: #e8b931;
+  --m-silver: #b9c0cc;
 }
 
 @media (prefers-color-scheme: light) {
@@ -84,6 +89,9 @@
     --m-card-shadow: 0 1px 3px rgb(16 24 40 / 0.3);
     --m-card-shadow-hover: 0 10px 22px rgb(16 24 40 / 0.3), 0 2px 6px rgb(16 24 40 / 0.2);
     --m-culture-icon-filter: none;
+    --m-white-icon-filter: brightness(0) invert(0.16);
+    --m-gold: #d9a514;
+    --m-silver: #9aa3b2;
   }
 }
 
