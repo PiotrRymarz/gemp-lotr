@@ -1,6 +1,6 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { DeckbuilderActions } from '../../../core/actions/deckbuilder-actions.service';
+import { CARD_ACTIONS } from '../../../core/cards/card-actions';
 import { CardView } from '../../../core/cards/card-view';
 import { CardHover } from './card-hover';
 import { CardComponent, DRAG_UP_FOR_INFO, LONG_PRESS_MS } from './card.component';
@@ -43,7 +43,7 @@ describe('CardComponent', () => {
   beforeEach(() => {
     actions = { activate: vi.fn(), showInfo: vi.fn() };
     TestBed.configureTestingModule({
-      providers: [{ provide: DeckbuilderActions, useValue: actions }],
+      providers: [{ provide: CARD_ACTIONS, useValue: actions }],
     });
   });
 

@@ -1,5 +1,5 @@
 import { Component, DestroyRef, ElementRef, inject, input } from '@angular/core';
-import { DeckbuilderActions } from '../../../core/actions/deckbuilder-actions.service';
+import { CARD_ACTIONS } from '../../../core/cards/card-actions';
 import { CardView } from '../../../core/cards/card-view';
 import { CardHover } from './card-hover';
 
@@ -12,9 +12,9 @@ export const DRAG_UP_FOR_INFO = 20;
 
 /**
  * A card: a native button with the card image and its layers. Using it (click, Enter, Space) does what the card is
- * for (DeckbuilderActions.activate: add it to the deck, open the pack, ...); asking for its details (shift-click,
- * right-click or the context-menu key, a long press on a touch screen, or dragging it upwards with the mouse) shows
- * them (DeckbuilderActions.showInfo). The mouse coming onto it, leaving it and pressing on it are reported to CardHover
+ * for on its page (CARD_ACTIONS.activate; in the deck builder: add it to the deck, open the pack, ...); asking for its
+ * details (shift-click, right-click or the context-menu key, a long press on a touch screen, or dragging it upwards
+ * with the mouse) shows them (CARD_ACTIONS.showInfo). The mouse coming onto it, leaving it and pressing on it are reported to CardHover
  * (for the hover zoom).
  *
  * DOM contract: `button.gd-card` with `data-role` (card, pack, selection, placeholder), `data-orientation`
@@ -64,7 +64,7 @@ export const DRAG_UP_FOR_INFO = 20;
 export class CardComponent {
   readonly card = input.required<CardView>({ alias: 'gdCard' });
 
-  private readonly actions = inject(DeckbuilderActions);
+  private readonly actions = inject(CARD_ACTIONS);
   private readonly hover = inject(CardHover);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private press: {

@@ -47,6 +47,25 @@ describe('ui boundary', () => {
     expect(outside).toEqual([]);
   });
 
+  it("keeps ui/shared free of any page's own code (it uses the page's CARD_ACTIONS, not DeckbuilderActions)", () => {
+    // Shared parts may use core's cards, notifier and platform; the pages' state (actions, deck, collection, packs,
+    // delivery, login, merchant, ...) and the pages' own ui are theirs
+    const shared = new Set(['core/cards/', 'core/notifier/', 'core/platform/', 'ui/shared/']);
+    const pageImports = files
+      .filter(({ name }) => name.startsWith('ui/shared/'))
+      .flatMap(({ file, name, source }) =>
+        [...source.matchAll(/(?:import|export)[^'"]*from\s*'(\.[^']+)'/g)]
+          .map((match) =>
+            relative(SRC_DIR, resolve(file, '..', match[1]))
+              .split(sep)
+              .join('/'),
+          )
+          .filter((path) => ![...shared].some((prefix) => path.startsWith(prefix)))
+          .map((path) => `${name} -> ${path}`),
+      );
+    expect(pageImports).toEqual([]);
+  });
+
   it('has no component styles, and no inline styles but `display: contents`', () => {
     const styled = files.flatMap(({ name, source }) => [
       ...[...source.matchAll(/\bstyles\s*:|styleUrls?\s*:/g)].map((match) => `${name}: ${match[0]}`),

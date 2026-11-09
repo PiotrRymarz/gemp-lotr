@@ -1,5 +1,6 @@
 import { CollectionItem } from '../api/models';
 import { DeckCard, DeckSlot, DrawCopy } from '../deck/deck-model';
+import { MerchantItem } from '../merchant/merchant-models';
 
 /**
  * What a card on the page stands for (the legacy code kept this as jQuery data "card" on the element): what clicking
@@ -17,7 +18,9 @@ export type CardRef =
   /** The Race to Mount Doom meta-site (display only), with its modifier drawn over it. */
   | { kind: 'race'; blueprintId: string; overlayBlueprintId: string | null }
   /** A card that is only shown (opened-pack contents, selection pack choices); `role` is its class, if any. */
-  | { kind: 'shown'; blueprintId: string; zone: string; role: string };
+  | { kind: 'shown'; blueprintId: string; zone: string; role: string }
+  /** An item the merchant trades or the player owns (merchant page). */
+  | { kind: 'merchant'; blueprintId: string; item: MerchantItem };
 
 /** The zone the legacy page created the card with (it decides e.g. whether a site is drawn landscape). */
 export function zoneOf(ref: CardRef): string | null {
@@ -33,5 +36,8 @@ export function zoneOf(ref: CardRef): string | null {
       return 'attached';
     case 'shown':
       return ref.zone;
+    case 'merchant':
+      // merchantUi.js: new Card(blueprintId, "merchant", "collection", "player"), so the zone is "player"
+      return ref.item.kind === 'pack' ? 'pack' : 'player';
   }
 }

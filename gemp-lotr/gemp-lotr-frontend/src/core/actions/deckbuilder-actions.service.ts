@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { CardActions } from '../cards/card-actions';
 import { CardInfoService } from '../cards/card-info.service';
 import { CardRef } from '../cards/card-ref';
 import { DeckService } from '../deck/deck.service';
@@ -11,7 +12,7 @@ import { PacksService } from '../packs/packs.service';
  *  - asking for details shows the card information.
  */
 @Injectable()
-export class DeckbuilderActions {
+export class DeckbuilderActions implements CardActions {
   private readonly deck = inject(DeckService);
   private readonly packs = inject(PacksService);
   private readonly cardInfo = inject(CardInfoService);

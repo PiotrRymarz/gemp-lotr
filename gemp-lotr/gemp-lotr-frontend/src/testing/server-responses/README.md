@@ -12,3 +12,8 @@
 - Written by hand from the server code, for the login page: `login-ok.xml` (the body of a successful POST /login or
   /register: `writeXmlResponse(null, ...)` in GempukkuHttpRequestHandler writes `<result>OK</result>`; a 202 or an
   error has an empty body) and `server-status.txt` (GET /, StatusRequestHandler, with made-up counts).
+- Written by hand from the server code, for the merchant: `merchant.xml` (GET /merchant,
+  MerchantRequestHandler.getMerchantOffers: `<merchant currency count>` with `<card>`/`<pack>` items in server order,
+  `buyPrice` only for owned items, `tradeFoil="true"` for 4+ non-foil copies), `merchant-ok.txt` (the body of a
+  successful POST /merchant/buy, /sell or /tradeFoil) and `merchant-error.xml` (what those calls answer, still with
+  status 200, when the operation fails: `marshalException`).

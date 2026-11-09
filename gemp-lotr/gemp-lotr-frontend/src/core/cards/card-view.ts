@@ -2,7 +2,7 @@ import { CardRef } from './card-ref';
 
 /** What a card on the page shows, whatever theme draws it. */
 export interface CardView {
-  /** What the card stands for: what using it does (DeckbuilderActions) and what its details show. */
+  /** What the card stands for: what using it does (CARD_ACTIONS) and what its details show. */
   ref: CardRef;
   /** The card's role on the page, e.g. a card or a pack in the collection; the themes may tell them apart. */
   role: CardRole;

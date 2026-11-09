@@ -1,9 +1,14 @@
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideFakeNotifier } from '../../testing/fake-notifier';
+import { CARD_ACTIONS } from '../cards/card-actions';
 import { CardInfoService } from '../cards/card-info.service';
 import { CardRef } from '../cards/card-ref';
 import { DeckService } from '../deck/deck.service';
 import { PacksService } from '../packs/packs.service';
 import { DeckbuilderActions } from './deckbuilder-actions.service';
+import { DECKBUILDER_SERVICES } from './deckbuilder-services';
 
 describe('DeckbuilderActions', () => {
   let actions: DeckbuilderActions;
@@ -69,5 +74,14 @@ describe('DeckbuilderActions', () => {
     const ref: CardRef = { kind: 'race', blueprintId: '90_7', overlayBlueprintId: null };
     actions.showInfo(ref);
     expect(TestBed.inject(CardInfoService).card()).toBe(ref);
+  });
+});
+
+describe('DECKBUILDER_SERVICES', () => {
+  it("gives the shared cards the deck builder's actions through CARD_ACTIONS", () => {
+    TestBed.configureTestingModule({
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideFakeNotifier(), ...DECKBUILDER_SERVICES],
+    });
+    expect(TestBed.inject(CARD_ACTIONS)).toBe(TestBed.inject(DeckbuilderActions));
   });
 });
