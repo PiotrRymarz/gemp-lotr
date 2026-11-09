@@ -32,3 +32,13 @@
   `<pickedCard blueprintId count>`s sorted by the server, the pack on offer as `<availablePick id blueprintId
 [chosen="true"]>` (the same card may be on offer twice), `<timeRemaining value>` (seconds) only for a timed draft,
   and `<roundsInfo currentRound roundsTotal>`). Players and cards are made up.
+- Written by hand from the server code, for the hall (a fresh database has no tables or queues): `hall.xml` (GET
+  /hall, HallRequestHandler.getHall with SerializeHallInfoVisitor: `<hall channelNumber currency motd serverTime
+serverTimeMs>` with `add` queue, tournament and table rows and a `<newGame>`; attributes from
+  HallServer.processHall, values made up), `hall-update.xml` (POST /hall/update: `update` / `remove` rows, `shutdown`,
+  two `<newGame>`s, one already announced) and `hall-update-empty.xml` (an update with no changes).
+- Written by hand from the server code, for the hall chat: `chat.xml` (GET /chat/Game%20Hall,
+  ChatRequestHandler.serializeChatRoomData: `<chat roomName>` with `<message from date>` holding server markup
+  (MarkdownParser output for players), and the `<user>` list with the viewer's own entry first (`self`,
+  `incognito`), a `role`, and an old-style "+ " prefix), `chat-update.xml` (a poll's answer) and, for
+  PlayerInfoRequestHandler, `ignores.json` (GET /player/ignores) and `ignore-added.json` (POST /player/ignores/add).

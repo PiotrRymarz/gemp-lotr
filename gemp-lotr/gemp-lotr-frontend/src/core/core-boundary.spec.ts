@@ -28,12 +28,16 @@ function importedPaths(file: string, source: string): string[] {
 const BROWSER_GLOBALS =
   /\b(DOCUMENT|window|document|globalThis|navigator|localStorage|sessionStorage|matchMedia|location)\b(?!\s*:)/g;
 
-/** Comments may mention the page ("in document order"), and module paths may too ('./page-location'). */
+/**
+ * Comments may mention the page ("in document order"), and module paths may too ('./page-location'), and so may the
+ * player-facing texts in string literals ("opened in another window").
+ */
 function withoutComments(source: string): string {
   return source
     .replace(/from\s*'[^']*'/g, "from ''")
     .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/(^|[^:'"])\/\/[^\n]*/g, '$1');
+    .replace(/(^|[^:'"])\/\/[^\n]*/g, '$1')
+    .replace(/'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g, "''");
 }
 
 describe('core boundary', () => {
