@@ -45,4 +45,10 @@ export class PlayerService {
     );
     return this.pending;
   }
+
+  /** Forgets the answer and asks again (after logging in or out); the state keeps the old answer until then. */
+  refresh(): Promise<Player | null> {
+    this.pending = null;
+    return this.load();
+  }
 }

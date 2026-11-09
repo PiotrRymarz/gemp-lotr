@@ -89,4 +89,17 @@ describe('PlayerService', () => {
     expectPlayerRequest().flush(readServerResponse('player.json'));
     await expect(retried).resolves.toMatchObject({ name: 'Visual tester' });
   });
+
+  it('asks again on refresh (after logging in)', async () => {
+    setUp();
+    const anonymous = service.load();
+    expectPlayerRequest().flush('', { status: 401, statusText: 'Unauthorized' });
+    await anonymous;
+    const refreshed = service.refresh();
+    expect(service.state()).toEqual({ status: 'anonymous' });
+    expectPlayerRequest().flush(readServerResponse('player.json'));
+    await expect(refreshed).resolves.toMatchObject({ name: 'Visual tester' });
+    expect(service.player()?.name).toBe('Visual tester');
+    await expect(service.load()).resolves.toMatchObject({ name: 'Visual tester' });
+  });
 });

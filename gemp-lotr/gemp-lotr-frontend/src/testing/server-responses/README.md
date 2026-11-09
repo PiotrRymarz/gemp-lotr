@@ -9,3 +9,6 @@
   `pack-delivery.xml` (DeliveryRequestHandler.serializeCollectionsAsXML).
 - `player.json`: GET /player (PlayerInfoRequestHandler, `Player.GetUserInfo` serialized by `JsonUtils.Serialize`),
   written by hand from the server code, for a player with trophies.
+- Written by hand from the server code, for the login page: `login-ok.xml` (the body of a successful POST /login or
+  /register: `writeXmlResponse(null, ...)` in GempukkuHttpRequestHandler writes `<result>OK</result>`; a 202 or an
+  error has an empty body) and `server-status.txt` (GET /, StatusRequestHandler, with made-up counts).

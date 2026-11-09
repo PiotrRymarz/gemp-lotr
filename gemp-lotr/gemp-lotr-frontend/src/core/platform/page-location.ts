@@ -6,3 +6,9 @@ export const PAGE_QUERY_STRING = new InjectionToken<string>('PAGE_QUERY_STRING',
   providedIn: 'root',
   factory: () => inject(DOCUMENT).defaultView?.location.search ?? '',
 });
+
+/** The page's #fragment (e.g. "#events/leagues"); a token so tests can supply their own. */
+export const PAGE_HASH = new InjectionToken<string>('PAGE_HASH', {
+  providedIn: 'root',
+  factory: () => inject(DOCUMENT).defaultView?.location.hash ?? '',
+});

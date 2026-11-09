@@ -19,6 +19,12 @@ export interface RequestOptions {
   noCache?: boolean;
 }
 
+/** A successful answer with its HTTP status (see GempHttp.postForStatus). */
+export interface StatusResponse {
+  status: number;
+  body: string;
+}
+
 /**
  * Low-level access to the Gemp server, matching how the legacy communication.js talks to it:
  * form-encoded parameters (strictly encoded), participantId added, GETs not cached, failures turned into ApiError,
@@ -47,6 +53,19 @@ export class GempHttp {
     return this.handle(this.http.post(SERVER_URL + path, body, { responseType: 'text', observe: 'response' }));
   }
 
+  /**
+   * POSTs like postText, but also gives the status of a successful answer, for the calls whose 2xx status means
+   * something (POST /login answers 202 when the account's password was reset).
+   */
+  postForStatus(path: string, data: FormData = {}, options: RequestOptions = {}): Observable<StatusResponse> {
+    const body = toFormParams(this.withParticipant(data, options));
+    return this.http.post(SERVER_URL + path, body, { responseType: 'text', observe: 'response' }).pipe(
+      tap((response) => this.announceOpenedPack(response)),
+      map((response) => ({ status: response.status, body: response.body ?? '' })),
+      catchError((error: unknown) => throwError(() => ApiError.from(error))),
+    );
+  }
+
   getXml(path: string, data: FormData = {}, options: RequestOptions = {}): Observable<Document> {
     return this.getText(path, data, options).pipe(map(GempHttp.toXml));
   }
@@ -72,14 +91,16 @@ export class GempHttp {
 
   private handle(response$: Observable<HttpResponse<string>>): Observable<string> {
     return response$.pipe(
-      tap((response) => {
-        if (response.headers.get(OPENED_PACK_HEADER) === 'true') {
-          this.openedPackAnnounced.next();
-        }
-      }),
+      tap((response) => this.announceOpenedPack(response)),
       map((response) => response.body ?? ''),
       catchError((error: unknown) => throwError(() => ApiError.from(error))),
     );
+  }
+
+  private announceOpenedPack(response: HttpResponse<string>): void {
+    if (response.headers.get(OPENED_PACK_HEADER) === 'true') {
+      this.openedPackAnnounced.next();
+    }
   }
 
   private static toXml(text: string): Document {
