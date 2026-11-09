@@ -8,6 +8,9 @@ import { ThemeService } from '../../core/platform/theme.service';
 import { provideFakeNotifier } from '../../testing/fake-notifier';
 import { DeckbuilderPageComponent } from '../deckbuilder/deckbuilder-page.component';
 import { LoginPageComponent } from '../login/login-page.component';
+import { MerchantPageComponent } from '../merchant/merchant-page.component';
+import { MerchantNotifier } from '../merchant/merchant-notifier';
+import { MerchantService } from '../../core/merchant/merchant.service';
 import { AppComponent } from './app.component';
 import { APP_ROUTES } from './app.routes';
 
@@ -47,6 +50,18 @@ describe('app routes', () => {
     expect(url).toBe('/login?participantId=bob');
     expect(harness.routeNativeElement!.classList).toContain('gd-login');
     expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Login');
+  });
+
+  it('loads the merchant at merchant, with its own MerchantService asking through MerchantNotifier', async () => {
+    const { page, url } = await open('/merchant');
+    expect(page).toBeInstanceOf(MerchantPageComponent);
+    expect(url).toBe('/merchant');
+    expect(harness.routeNativeElement!.classList).toContain('gd-merchant');
+    expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Merchant');
+    const backend = TestBed.inject(HttpTestingController);
+    expect(backend.match((req) => req.url === '/gemp-lotr-server/merchant')).toHaveLength(1);
+    expect(() => TestBed.inject(MerchantService)).toThrow();
+    expect(() => TestBed.inject(MerchantNotifier)).toThrow();
   });
 
   it('keeps the query string (?theme=, ?participantId=)', async () => {

@@ -1,6 +1,8 @@
 import { Routes } from '@angular/router';
 import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
 import { LOGIN_SERVICES } from '../../core/login/login-services';
+import { MERCHANT_SERVICES } from '../../core/merchant/merchant-services';
+import { MERCHANT_VIEW_PROVIDERS } from '../merchant/merchant-notifier';
 import { loadThemePage } from './theme-pages';
 
 /**
@@ -26,6 +28,14 @@ export const APP_ROUTES: Routes = [
     resolve: { themePage: loadThemePage },
     providers: LOGIN_SERVICES,
     loadComponent: () => import('../login/login-page.component').then((m) => m.LoginPageComponent),
+  },
+  {
+    path: 'merchant',
+    title: 'GEMP: LotR-TCG - Merchant',
+    data: { page: 'merchant' },
+    resolve: { themePage: loadThemePage },
+    providers: [...MERCHANT_SERVICES, ...MERCHANT_VIEW_PROVIDERS],
+    loadComponent: () => import('../merchant/merchant-page.component').then((m) => m.MerchantPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
   { path: '**', redirectTo: 'deckbuilder' },

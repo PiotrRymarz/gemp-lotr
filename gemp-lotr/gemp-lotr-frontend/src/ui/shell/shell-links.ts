@@ -14,4 +14,5 @@ export const HALL_HREF = '/gemp-lotr/hall.html';
 export const SHELL_LINKS: readonly ShellLink[] = [
   { page: 'hall', label: 'Game Hall', href: HALL_HREF },
   { page: 'deckbuilder', label: 'Deck Builder', route: '/deckbuilder' },
+  { page: 'merchant', label: 'Merchant', route: '/merchant' },
 ];

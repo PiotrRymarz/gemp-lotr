@@ -2,7 +2,13 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { MenuComponent } from './menu.component';
-import { SHELL_LINKS } from './shell-links';
+import { HALL_HREF, ShellLink } from './shell-links';
+
+/** Two links, a legacy page and an app page (the arrow keys' wrapping below counts on two) */
+const LINKS: readonly ShellLink[] = [
+  { page: 'hall', label: 'Game Hall', href: HALL_HREF },
+  { page: 'deckbuilder', label: 'Deck Builder', route: '/deckbuilder' },
+];
 
 @Component({ template: '' })
 class PageComponent {}
@@ -12,7 +18,7 @@ class PageComponent {}
   template: `<gd-menu [links]="links" current="deckbuilder" /><button type="button" class="outside">Elsewhere</button>`,
 })
 class HostComponent {
-  readonly links = SHELL_LINKS;
+  readonly links = LINKS;
 }
 
 describe('MenuComponent', () => {
@@ -42,7 +48,7 @@ describe('MenuComponent', () => {
     expect(button.getAttribute('aria-expanded')).toBe('false');
     expect(button.getAttribute('aria-controls')).toBe(panel.id);
     expect(panel.hidden).toBe(true);
-    expect(links().map((a) => a.dataset['page'])).toEqual(SHELL_LINKS.map((link) => link.page));
+    expect(links().map((a) => a.dataset['page'])).toEqual(LINKS.map((link) => link.page));
     expect(links().map((a) => a.getAttribute('aria-current'))).toEqual([null, 'page']);
   });
 

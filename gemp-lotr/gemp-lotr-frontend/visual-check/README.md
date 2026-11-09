@@ -119,6 +119,15 @@ and froze the page until the answer). In classic, `initial` and `register` match
 the password field's border is the browser's hover border, as the mouse rests on its `label` (the legacy text was no
 label).
 
+### Merchant scenarios
+
+`/gemp-lotr/merchant.html` against `/gemp-lotr/ng/merchant` (GET `/merchant` answered from a stubbed stock of a
+pack and 41 cards in `pages/merchant.mjs`, paged and filtered by the request; the operations answer OK): `initial`,
+`filtered` (a card name typed: a short page of cards in one row), `page-2`, `confirm` ("Sell for" on the first card:
+the "Merchant operation" dialog) and `error` (GET `/merchant` answers 500). In classic, `initial`, `filtered`,
+`page-2` match the legacy page exactly, and `confirm` but for the focus ring around the dialog's Wiki link. In `error` the legacy page used the browser's alert, which a
+screenshot doesn't show; the Angular side shows the notifier's dialog over an empty page.
+
 ### Adding a page
 
 Add `pages/<name>.mjs` and list it in `pages/index.mjs`. It exports by default:

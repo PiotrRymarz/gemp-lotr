@@ -49,7 +49,9 @@ Ported from `gemp-lotr-async/src/main/web/merchant.html`, `src/Merchant/merchant
   "Do you want to sell this item for P?", "Do you want to buy this item for P?", "Do you want to trade 4 of this card
   and 4G in currency for a foil version of the card?". Yes runs it, then the current page is reloaded. Here the
   question goes through `Notifier.confirm`, with the price as text ("12G 05S"); `question()` says which item it is
-  about so the view can show the card beside it.
+  about so the view can show the card beside it. The merchant's route provides its own Notifier
+  (`ui/merchant/MerchantNotifier`), which asks in the page's "Merchant operation" dialog, drawing the price from
+  `questionWording` and `priceParts`; messages still go to the app's notifier.
 - Errors: a page that fails to load, or a failed operation call, alerts "There was a problem during communication
   with server" (processError; the legacy page ignored aborted requests, here older requests are simply dropped).
 

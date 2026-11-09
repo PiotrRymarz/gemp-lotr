@@ -1,5 +1,5 @@
 import { readLegacyWebFile } from '../../testing/files';
-import { buyQuestion, sellQuestion, TRADE_FOIL_QUESTION } from './merchant-messages';
+import { buyQuestion, questionWording, sellQuestion, TRADE_FOIL_QUESTION } from './merchant-messages';
 import { formatPrice, priceParts } from './merchant-prices';
 
 describe('merchant prices', () => {
@@ -18,5 +18,11 @@ describe('merchant prices', () => {
     expect(legacy).toContain('"Do you want to sell this item for " + formattedBuyPrice + "?"');
     expect(legacy).toContain('"Do you want to buy this item for " + formattedSellPrice + "?"');
     expect(legacy).toContain(`"${TRADE_FOIL_QUESTION}"`);
+  });
+
+  it('splits each question around its price, for a view that draws the price', () => {
+    expect(questionWording('sell')).toEqual({ before: 'Do you want to sell this item for ', after: '?', priced: true });
+    expect(questionWording('buy')).toEqual({ before: 'Do you want to buy this item for ', after: '?', priced: true });
+    expect(questionWording('tradeFoil')).toEqual({ before: TRADE_FOIL_QUESTION, after: '', priced: false });
   });
 });

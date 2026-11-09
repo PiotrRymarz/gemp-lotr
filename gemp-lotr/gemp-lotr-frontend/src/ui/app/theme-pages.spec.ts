@@ -26,8 +26,10 @@ function allRoutes(routes: Routes): Route[] {
 const pageRoutes = allRoutes(APP_ROUTES).filter((route) => route.data?.['page'] !== undefined);
 
 describe('theme CSS per page', () => {
-  it('has the page routes to check (the deck builder, the login page)', () => {
-    expect(pageRoutes.map((route) => route.data!['page'])).toEqual(expect.arrayContaining(['deckbuilder', 'login']));
+  it('has the page routes to check (the deck builder, the login page, the merchant)', () => {
+    expect(pageRoutes.map((route) => route.data!['page'])).toEqual(
+      expect.arrayContaining(['deckbuilder', 'login', 'merchant']),
+    );
   });
 
   it.each(THEMES)('builds the %s base bundle, linked at runtime only', (theme) => {

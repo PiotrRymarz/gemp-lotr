@@ -41,6 +41,11 @@
                 "inject": false
               },
               {
+                "input": "src/themes/classic/merchant.css",
+                "bundleName": "theme-classic-merchant",
+                "inject": false
+              },
+              {
                 "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
                 "inject": false
@@ -53,6 +58,11 @@
               {
                 "input": "src/themes/modern/login.css",
                 "bundleName": "theme-modern-login",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/merchant.css",
+                "bundleName": "theme-modern-merchant",
                 "inject": false
               }
             ],

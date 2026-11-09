@@ -1,0 +1,511 @@
+/*
+ * The classic theme's merchant, built into theme-classic-merchant.css: ThemeService loads it after the theme's base
+ * (base.css), on the merchant page only. The legacy merchant.html: the filter (LegacyCardFilter, cardFilter.js) in a
+ * 160px band above the offers (merchant.js layoutUi), the pocket, "Hide merchant" and "Owned >=" on its right
+ * (merchantUi.layoutUI), and the offers in a jQuery UI "dark-hive" box (NormalCardGroup), each card with its copies and
+ * its buttons (merchantUi.addCardToList). Sizes come from css/gemp-001/merchant.css, cardFilter.css and the jQuery UI
+ * 1.8.16 dark-hive theme (widgets at 1.1em of the page's 12px: 13.2px; button text at 70% of that).
+ */
+
+/* The legacy merchant had no shared header; nor does it use the cards' ⓘ spot */
+.gd-shell[data-page='merchant'] > .gd-shell__header,
+.gd-merchant .gd-card > .gd-card__info {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- page frame (merchant.js layoutUi) */
+
+/* 5px around and between the 160px filter and the offers; at least 800 x 400, as layoutUi kept it */
+.gd-merchant {
+  position: fixed;
+  inset: 0;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 160px minmax(0, 1fr);
+  row-gap: 5px;
+  min-width: 800px;
+  min-height: 400px;
+  padding: 5px;
+  background: #000;
+  overflow: hidden;
+}
+
+.gd-merchant__filter,
+.gd-merchant__offers {
+  position: relative;
+  min-height: 0;
+}
+
+/* Visually hidden: the legacy controls had no labels (the selects' first options say what they are) */
+.gd-merchant-field__label,
+.gd-merchant-filter__pocket-label,
+.gd-culture__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- the filter (LegacyCardFilter.buildUi) */
+
+.gd-merchant-filter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.gd-merchant-filter > * {
+  flex: none;
+}
+
+/* #card-navigation: the icon buttons and the page size slider between them */
+.gd-merchant-filter .gd-pager {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/*
+ * A jQuery UI icon button (button.ui-button-icon-only): 2.4em wide; the icon, a block, is pulled 8px left of the
+ * content (the legacy theme dropped its centring), over an empty text span of .4em padding
+ */
+.gd-merchant-filter .gd-pager .gd-button {
+  width: 31.68px;
+  height: 33.78px;
+  margin-right: 1.32px;
+  padding: 2.64px 3.96px 13.2px;
+  font-size: 13.2px;
+}
+
+.gd-merchant-filter .gd-pager .gd-button[data-icon]::before {
+  margin: 0 0 0 -8px;
+}
+
+/* The slider (.ui-slider-horizontal): a .8em high line, its handle 1.2em square, .3em above it and centred on the value */
+.gd-pager__track {
+  position: relative;
+  flex: 1 1 0;
+  box-sizing: border-box;
+  height: 12.56px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: var(--classic-content-bg);
+}
+
+.gd-pager__track:has(.gd-pager__size:disabled) {
+  opacity: 0.35;
+}
+
+/* The input overhangs the line by half a handle on each side, so its thumb sits where the jQuery UI handle did */
+.gd-pager__track .gd-pager__size {
+  position: absolute;
+  left: -7.92px;
+  top: -3.96px;
+  width: calc(100% + 17.84px);
+  height: 17.84px;
+  opacity: 1;
+}
+
+.gd-pager__track .gd-pager__size::-webkit-slider-runnable-track {
+  height: 17.84px;
+  border: 0;
+  background: none;
+}
+
+.gd-pager__track .gd-pager__size::-moz-range-track {
+  height: 17.84px;
+  border: 0;
+  background: none;
+}
+
+.gd-pager__track .gd-pager__size::-webkit-slider-thumb {
+  width: 17.84px;
+  height: 17.84px;
+  margin-top: 0;
+}
+
+.gd-pager__track .gd-pager__size::-moz-range-thumb {
+  width: 17.84px;
+  height: 17.84px;
+}
+
+.gd-pager__track .gd-pager__size:focus {
+  outline: none;
+}
+
+/* #advanced-filter: the Wiki's card search, centred in 60% of the width */
+.gd-merchant-filter__wiki {
+  display: flex;
+  align-items: center;
+  height: 30px;
+  margin: 0;
+}
+
+.gd-merchant-filter__wiki a {
+  width: 60%;
+  margin: auto;
+  color: #bf6b04;
+  text-align: center;
+}
+
+/* #filter-inputs: set, name, sort and rarity, unstyled controls as the legacy page left them */
+.gd-merchant-filter__inputs {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.gd-merchant-field {
+  display: contents;
+}
+
+.gd-merchant-filter__inputs select {
+  font-size: 9.6px;
+}
+
+.gd-merchant-field[data-field='set'] select {
+  width: 130px;
+}
+
+.gd-merchant-field[data-field='name'] input {
+  width: 110px;
+  font-size: 8.4px;
+}
+
+.gd-merchant-field[data-field='sort'] select {
+  width: 80px;
+}
+
+.gd-merchant-field[data-field='rarity'] select {
+  width: 40px;
+}
+
+/* #culture-buttons: the culture toggles (a jQuery UI buttonset), then the selects, wrapping */
+.gd-merchant-filter__details {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: 7px;
+}
+
+.gd-cultures {
+  display: contents;
+}
+
+.gd-cultures__group {
+  display: block;
+}
+
+/* A text-only jQuery UI button of 70% text, holding the culture's image */
+.gd-culture {
+  /* Positioned, as .ui-button was: its right edge, over the next control, is drawn on top */
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2.64px;
+  margin-right: -2.64px;
+  padding: 4.488px 6.732px;
+  border: 1px solid #444;
+  background: var(--classic-default-bg);
+  font-family: var(--classic-widget-font);
+  font-size: 9.24px;
+  vertical-align: top;
+  cursor: pointer;
+}
+
+.gd-cultures__group:first-child .gd-culture:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+/* The last toggle of all, shown or not (the legacy buttonset was made before the Hobbit ones were hidden) */
+.gd-cultures__group:last-child .gd-culture:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
+.gd-culture:hover,
+.gd-culture:has(.gd-culture__input:focus-visible) {
+  border-color: #0b93d5;
+  background: var(--classic-hover-bg);
+}
+
+.gd-culture[data-active] {
+  border-color: #26b3f7;
+  background: var(--classic-active-bg);
+}
+
+.gd-culture__icon {
+  display: block;
+  height: 20px;
+}
+
+/* The combos: card type, keyword, type, and race, item class or phase; a space apart */
+.gd-merchant-filter__selects {
+  display: flex;
+  align-items: flex-start;
+  gap: 3px;
+}
+
+.gd-merchant-filter__selects select {
+  font-size: 9.6px;
+}
+
+.gd-merchant-field[data-field='cardType'] select {
+  width: 100px;
+}
+
+/* ---------------------------------------------------------------- pocket, Hide merchant, Owned >= (merchantUi.layoutUI) */
+
+.gd-merchant-filter__pocket,
+.gd-merchant-filter__hide,
+.gd-merchant-filter__owned {
+  position: absolute;
+  color: #fff;
+  text-align: right;
+}
+
+/* .pocket: 60 x 18 at the right, 35px down */
+.gd-merchant-filter__pocket {
+  left: calc(100% - 60px);
+  top: 35px;
+  width: 60px;
+  height: 18px;
+  border: 1px solid #fff;
+  background: #000;
+  font-weight: bolder;
+}
+
+.gd-merchant-filter__hide {
+  left: calc(100% - 100px);
+  top: calc(100% - 38px);
+  width: 100px;
+  height: 18px;
+}
+
+.gd-merchant-filter__owned {
+  left: calc(100% - 100px);
+  top: calc(100% - 20px);
+  width: 100px;
+  height: 20px;
+}
+
+/* The text node "Owned >= " ended with a space */
+.gd-merchant-filter__owned select {
+  margin-left: 3px;
+}
+
+/* ---------------------------------------------------------------- prices (common.js formatPrice) */
+
+/* A number, then its coin image (9 x 9, on the baseline) */
+.gd-price__gold::after,
+.gd-price__silver::after {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  background: url('/gemp-lotr/ng/themes/classic/gold.png') no-repeat;
+}
+
+.gd-price__silver::after {
+  background-image: url('/gemp-lotr/ng/themes/classic/silver.png');
+}
+
+/* ---------------------------------------------------------------- the offers (NormalCardGroup, addCardToList) */
+
+/* The group's box: a jQuery UI content box 2px larger than its place (the border outside the legacy width) */
+.gd-merchant-grid {
+  position: absolute;
+  inset: 0;
+}
+
+.gd-merchant-grid::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid #555;
+  border-radius: 7px;
+  background: var(--classic-content-bg);
+}
+
+/* The cards keep 3px inside the place (CardGroup.setBounds), in the legacy rows */
+.gd-merchant-grid__cards {
+  --gd-card-max-height: 497px;
+  --gd-card-gap: 5px;
+  --gd-card-fit: rows;
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+/* An offer is its card's size; its rows are the row height apart, as the legacy group placed them (whole pixels) */
+.gd-offer {
+  --card-w: round(down, calc(var(--gd-card-height, 200px) * 350 / 490), 1px);
+  --card-h: round(down, calc(var(--card-w) * 490 / 350), 1px);
+  position: relative;
+  top: var(--gd-card-offset, 0px);
+  flex: none;
+  display: flex;
+  margin-bottom: calc(round(down, var(--gd-card-height, 200px), 1px) - var(--card-h));
+}
+
+.gd-offer[data-orientation='horizontal'] {
+  --card-w: var(--gd-card-height, 200px);
+  --card-h: round(down, calc(var(--card-w) * 350 / 490), 1px);
+}
+
+/* autozoom.css, which rounded the cards, wasn't on the legacy merchant page */
+.gd-merchant .gd-card,
+.gd-merchant .gd-card > *,
+.gd-merchant .gd-card::after {
+  border-radius: 0;
+}
+
+/* .owned: 30 x 30, 5px in, 60px above the card's bottom */
+.gd-offer .gd-card__count {
+  /* Over the card's border, as the legacy .owned came after the border overlay */
+  z-index: 1;
+  inset: auto;
+  left: 5px;
+  top: calc(100% - 60px);
+  width: 30px;
+  height: 30px;
+  border: 1px solid #fff;
+  background-color: #000;
+  color: #fff;
+  font-size: 26.4px;
+  font-weight: bolder;
+  line-height: 30px;
+  text-align: center;
+  opacity: 0.7;
+}
+
+/*
+ * The buttons: jQuery UI text buttons (.2em .3em of padding, then the 70% text with .2em .3em of its own), 40px in
+ * and 45px narrower than the card; "Sell for" 80px, "Buy for" 50px and "Trade 4 for foil" 20px above its bottom
+ */
+.gd-offer__action {
+  position: absolute;
+  left: 40px;
+  top: calc(100% - 80px);
+  box-sizing: content-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  width: calc(100% - 45px - 5.544px);
+  height: calc(25px - 3.696px);
+  padding: 4.488px 6.732px;
+  border-radius: 6px;
+  font-size: 9.24px;
+  line-height: 1.4;
+  text-align: center;
+  opacity: 0.9;
+}
+
+.gd-offer__action[data-action='buy'] {
+  top: calc(100% - 50px);
+}
+
+.gd-offer__action[data-action='trade-foil'] {
+  top: calc(100% - 20px);
+  height: calc(15px - 3.696px);
+}
+
+.gd-offer__label,
+.gd-offer__action > .gd-price {
+  display: block;
+}
+
+/* Too dear: disabled and red */
+.gd-offer__action:disabled {
+  color: #f00;
+  opacity: 0.6;
+}
+
+/* ---------------------------------------------------------------- the "Merchant operation" dialog */
+
+/*
+ * 360 + 230 by 520 + 45 (a landscape card: 500 + 230 by 380 + 45), not resizable. jQuery UI took the title bar's
+ * height in whole pixels when it sized the content, so the dialog came out a little shorter than asked
+ */
+.gd-dialog[data-dialog='merchant-question'] {
+  --classic-dialog-width: 590px;
+  --classic-dialog-height: 565px;
+  height: calc(var(--classic-dialog-height) - 0.391px);
+  resize: none;
+}
+
+.gd-dialog[data-dialog='merchant-question']:has(.gd-merchant-question__card[data-orientation='horizontal']) {
+  --classic-dialog-width: 730px;
+  --classic-dialog-height: 425px;
+}
+
+.gd-merchant-question {
+  display: flow-root;
+}
+
+/* The card, floated left: Card.CreateFullCardDiv, 357 x 497 with a 16px black border */
+.gd-merchant-question__item {
+  float: left;
+}
+
+.gd-merchant-question__card {
+  position: relative;
+  width: 357px;
+  height: 497px;
+  margin: 0;
+}
+
+.gd-merchant-question__card[data-orientation='horizontal'] {
+  width: 497px;
+  height: 357px;
+}
+
+.gd-merchant-question__card > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.gd-merchant-question__foil {
+  opacity: 0.2;
+}
+
+.gd-merchant-question__card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 16px solid #000;
+}
+
+.gd-merchant-question__card[data-borderless]::after {
+  display: none;
+}
+
+.gd-merchant-question__wiki {
+  color: #fff;
+}
+
+/* The legacy dialog focused the link when it opened, and Chrome drew its focus ring (the dialog came from a div) */
+.gd-merchant-question__wiki:focus {
+  outline: #101010 auto 1px;
+}
+
+/* The close icon sat at the button's corner */
+.gd-dialog[data-dialog='merchant-question'] .gd-dialog__close::before {
+  margin: -1px 0 0;
+}
+
+.gd-merchant-question__message {
+  margin: 0;
+}

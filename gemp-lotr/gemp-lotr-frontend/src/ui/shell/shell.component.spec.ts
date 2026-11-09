@@ -80,8 +80,8 @@ describe('ShellComponent', () => {
     expect(links().map((a) => [a.dataset['page'], a.textContent!.trim()])).toEqual(
       SHELL_LINKS.map((link) => [link.page, link.label]),
     );
-    expect(links().map((a) => a.getAttribute('href'))).toEqual(['/gemp-lotr/hall.html', '/deckbuilder']);
-    expect(links().map((a) => a.getAttribute('aria-current'))).toEqual([null, 'page']);
+    expect(links().map((a) => a.getAttribute('href'))).toEqual(['/gemp-lotr/hall.html', '/deckbuilder', '/merchant']);
+    expect(links().map((a) => a.getAttribute('aria-current'))).toEqual([null, 'page', null]);
 
     await TestBed.inject(Router).navigateByUrl('/other');
     await fixture.whenStable();

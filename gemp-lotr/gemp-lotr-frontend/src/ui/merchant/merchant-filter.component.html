@@ -1,0 +1,107 @@
+<ng-template #selectTemplate let-select>
+  <label class="gd-merchant-field" [attr.data-field]="select.field" [hidden]="hidden(select.field)">
+    <span class="gd-merchant-field__label">{{ select.label }}</span>
+    <select (change)="set(select.field, $event)">
+      @for (option of select.options; track $index) {
+        <option [value]="option.value" [disabled]="option.disabled" [selected]="value(select.field) === option.value">
+          {{ option.label }}
+        </option>
+      }
+    </select>
+  </label>
+</ng-template>
+
+<div class="gd-pager">
+  <button
+    type="button"
+    class="gd-pager__previous gd-button"
+    data-icon="previous"
+    aria-label="Previous page"
+    [disabled]="merchant.previousDisabled()"
+    (click)="merchant.previousPage()"
+  ></button>
+  <span class="gd-pager__track">
+    <input
+      class="gd-pager__size"
+      type="range"
+      aria-label="Cards per page"
+      [min]="pageSize.min"
+      [max]="pageSize.max"
+      [value]="merchant.count()"
+      [disabled]="merchant.sliderDisabled()"
+      (input)="setPageSize($event)"
+    />
+  </span>
+  <button
+    type="button"
+    class="gd-pager__next gd-button"
+    data-icon="next"
+    aria-label="Next page"
+    [disabled]="merchant.nextDisabled()"
+    (click)="merchant.nextPage()"
+  ></button>
+</div>
+
+<p class="gd-merchant-filter__wiki">
+  <a [href]="wiki" target="_blank">Looking for more?<br />Try the Wiki's Advanced Card Search.</a>
+</p>
+
+<div class="gd-merchant-filter__inputs">
+  <ng-container *ngTemplateOutlet="selectTemplate; context: { $implicit: setSelect }" />
+  <label class="gd-merchant-field" data-field="name">
+    <span class="gd-merchant-field__label">Card name</span>
+    <input type="text" placeholder="Card name" [value]="merchant.fields().name" (change)="setName($event)" />
+  </label>
+  @for (select of inputSelects; track select.field) {
+    <ng-container *ngTemplateOutlet="selectTemplate; context: { $implicit: select }" />
+  }
+</div>
+
+<div class="gd-merchant-filter__details">
+  <div class="gd-cultures" role="group" aria-label="Cultures">
+    @for (group of cultureGroups; track group.id) {
+      <div class="gd-cultures__group" [attr.data-group]="group.id" [hidden]="groupHidden(group.id)">
+        @for (culture of group.cultures; track culture) {
+          @let active = selected().has(culture);
+          <label class="gd-culture" [attr.data-culture]="culture" [attr.data-active]="active ? '' : null">
+            <input
+              class="gd-culture__input"
+              type="checkbox"
+              [checked]="active"
+              [attr.aria-label]="culture"
+              (change)="merchant.toggleCulture(culture)"
+            />
+            <img class="gd-culture__icon" [src]="cultureImage(culture)" alt="" />
+          </label>
+        }
+      </div>
+    }
+  </div>
+  <div class="gd-merchant-filter__selects">
+    @for (select of detailSelects; track select.field) {
+      <ng-container *ngTemplateOutlet="selectTemplate; context: { $implicit: select }" />
+    }
+  </div>
+</div>
+
+<div class="gd-merchant-filter__pocket">
+  <span class="gd-merchant-filter__pocket-label">Your currency</span>
+  @let currency = merchant.currency();
+  @if (currency !== null) {
+    <gd-price [price]="currency" />
+  }
+</div>
+
+<label class="gd-merchant-filter__hide">
+  <span>{{ labels.hide }}</span>
+  <input type="checkbox" [checked]="merchant.hideMerchant()" (change)="setHideMerchant($event)" />
+</label>
+
+<label class="gd-merchant-filter__owned">
+  <span>{{ labels.ownedMin }}</span>
+  <select (change)="setOwnedMin($event)">
+    @for (option of ownedMinOptions; track option) {
+      <option [value]="option" [selected]="merchant.ownedMin() === option">{{ option }}</option>
+    }
+  </select>
+</label>

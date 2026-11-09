@@ -11,7 +11,7 @@ export const THEMES = ['classic', 'modern'] as const;
 export type ThemeName = (typeof THEMES)[number];
 
 /** The pages with theme CSS of their own: a route names its page in `data: { page }` (app.routes.ts). */
-export const THEME_PAGES = ['deckbuilder', 'login'] as const;
+export const THEME_PAGES = ['deckbuilder', 'login', 'merchant'] as const;
 export type ThemePage = (typeof THEME_PAGES)[number];
 
 /** Shown in the theme picker (the settings dialog). */
