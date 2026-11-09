@@ -60,6 +60,19 @@ export class HallSession {
     this.player.load().catch(() => undefined);
   }
 
+  /**
+   * The page is left: the poll and the chat stop (the hall's services belong to its route, whose injector outlives
+   * the page). Showing the page again starts them afresh (begin()).
+   */
+  stop(): void {
+    if (!this.started()) {
+      return;
+    }
+    this.started.set(false);
+    this.comms.stop();
+    this.chat.stop();
+  }
+
   /** The viewer opened the Game Hall, Events, My Account or Admin. */
   loginTabOpened(): void {
     if (!this.started()) {

@@ -7,7 +7,8 @@ Ported from `gemp-lotr-async/src/main/web/hall.html`, `src/Hall/GameHall.js` (ta
 `PlayerInfoRequestHandler`, `LongPollingSystem`. The mobile branch's `src/HallMobile/hallState.js` was read for the
 table model (part 4.2). Wording is in `hall-messages.ts` and `chat/chat-messages.ts`.
 
-The hall is split into five parts; this one (4.1a) is the core of the frame and the chat. **4.1b** is their UI.
+The hall is split into five parts; 4.1a is the core of the frame and the chat, **4.1b** their UI (`ui/hall`,
+`ui/shared/chat`).
 
 | Part | What                                                                                       |
 | ---- | ------------------------------------------------------------------------------------------ |
@@ -152,7 +153,15 @@ The hall is split into five parts; this one (4.1a) is the core of the frame and 
 
 ## Known gaps
 
-- No UI, route, tab state, deep links or return-refresh yet (4.1b); the chat resize, scroll lock, user menu
-  positioning and list width are layout and not ported.
+- The UI (4.1b) is `ui/hall/` (the page, the connection readout, the tabs' placeholders) and the shared
+  `ui/shared/chat/` (`gd-chat`, drawn from `ChatLine`s and `ChatUser`s; message markup is read into nodes by
+  `chat-markup.ts` `parseServerMarkup` and drawn element by element, never as HTML). Deep links open their tab only (the
+  sub-pages' routes belong to their parts); the return-refresh is left to the parts with live data. The chat's height
+  is kept in localStorage (`gemp.hall.chatHeight`), not the legacy `chatResize` cookie. The user list's width and the
+  user menu's place are the theme's (CSS), not layout math.
+- The route's injector outlives the page, so the page stops the poll and the chat when it goes (`HallSession.stop()`)
+  and starts them afresh when shown again (`ChatService.start()` after `stop()` joins anew, its old lines cleared).
+- Play does nothing for a logged-in player yet (its popup is 4.2's); "Invite to table" in a player's menu waits for
+  4.2 too.
 - Delivery headers on hall answers are ignored (4.4). The chat does not rejoin after 410 by itself, as the legacy
   chat (refresh the page).

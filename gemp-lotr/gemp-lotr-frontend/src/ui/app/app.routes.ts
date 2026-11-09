@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
+import { HALL_SERVICES } from '../../core/hall/hall-services';
 import { LOGIN_SERVICES } from '../../core/login/login-services';
 import { MERCHANT_SERVICES } from '../../core/merchant/merchant-services';
 import { SOLO_DRAFT_SERVICES } from '../../core/solo-draft/solo-draft-services';
@@ -56,6 +57,16 @@ export const APP_ROUTES: Routes = [
     resolve: { themePage: loadThemePage },
     providers: TABLE_DRAFT_SERVICES,
     loadComponent: () => import('../table-draft/table-draft-page.component').then((m) => m.TableDraftPageComponent),
+  },
+  {
+    // The new hall (its tables, info, events, account and admin tabs come in later parts); the shell's "Game Hall"
+    // link still leads to the legacy hall until then
+    path: 'hall',
+    title: 'GEMP: LotR-TCG - Main Hall',
+    data: { page: 'hall' },
+    resolve: { themePage: loadThemePage },
+    providers: HALL_SERVICES,
+    loadComponent: () => import('../hall/hall-page.component').then((m) => m.HallPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
   { path: '**', redirectTo: 'deckbuilder' },

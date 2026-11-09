@@ -15,6 +15,8 @@ import { SoloDraftService } from '../../core/solo-draft/solo-draft.service';
 import { SoloDraftPageComponent } from '../solo-draft/solo-draft-page.component';
 import { TableDraftService } from '../../core/table-draft/table-draft.service';
 import { TableDraftPageComponent } from '../table-draft/table-draft-page.component';
+import { HallComms } from '../../core/hall/hall-comms.service';
+import { HallPageComponent } from '../hall/hall-page.component';
 import { AppComponent } from './app.component';
 import { APP_ROUTES } from './app.routes';
 
@@ -90,6 +92,21 @@ describe('app routes', () => {
     expect(harness.routeNativeElement!.dataset['state']).toBe('no-event');
     expect(TestBed.inject(HttpTestingController).match(() => true)).toEqual([]);
     expect(() => TestBed.inject(TableDraftService)).toThrow();
+  });
+
+  it('loads the hall at hall, with its own services, starting its poll and chat and stopping them when left', async () => {
+    const { page, url } = await open('/hall');
+    expect(page).toBeInstanceOf(HallPageComponent);
+    expect(url).toBe('/hall');
+    expect(harness.routeNativeElement!.classList).toContain('gd-hall');
+    expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Main Hall');
+    const backend = TestBed.inject(HttpTestingController);
+    const calls = backend.match((req) => req.url === '/gemp-lotr-server/hall' || req.url.includes('/chat/'));
+    expect(calls).toHaveLength(2);
+    expect(() => TestBed.inject(HallComms)).toThrow();
+
+    await open('/merchant');
+    expect(calls.every((call) => call.cancelled)).toBe(true);
   });
 
   it('keeps the query string (?theme=, ?participantId=)', async () => {

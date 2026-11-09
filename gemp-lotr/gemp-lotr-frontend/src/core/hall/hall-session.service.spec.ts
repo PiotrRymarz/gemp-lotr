@@ -80,6 +80,29 @@ describe('HallSession', () => {
     expect(session.loginRequired()).toBe(false);
   });
 
+  it('stops the poll and the chat when the page is left, and starts them afresh when it is shown again', async () => {
+    await session.begin(true);
+    backend.expectOne((r) => r.url === '/gemp-lotr-server/player').flush(readServerResponse('player.json'));
+    backend.expectOne((r) => r.url === '/gemp-lotr-server/chat/Game%20Hall').flush(readServerResponse('chat.xml'));
+    const signUp = backend.expectOne((r) => r.url === '/gemp-lotr-server/hall');
+    await settle();
+    expect(chat.lines()).toHaveLength(5);
+
+    session.stop();
+    expect(session.started()).toBe(false);
+    expect(comms.isRunning).toBe(false);
+    expect(signUp.cancelled).toBe(true);
+    backend.match(() => true);
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    backend.expectNone(() => true);
+
+    await session.begin(true);
+    expectStarted();
+    // a fresh join: the room's history comes again, so the lines shown before went
+    expect(chat.lines()).toEqual([]);
+    expect(chat.stopped()).toBe(false);
+  });
+
   it('starts anyway when the player could not be asked', async () => {
     const begun = session.begin(false);
     backend.expectOne((r) => r.url === '/gemp-lotr-server/player').flush('', { status: 500, statusText: 'Error' });

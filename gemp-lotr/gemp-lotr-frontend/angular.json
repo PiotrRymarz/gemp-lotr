@@ -56,6 +56,11 @@
                 "inject": false
               },
               {
+                "input": "src/themes/classic/hall.css",
+                "bundleName": "theme-classic-hall",
+                "inject": false
+              },
+              {
                 "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
                 "inject": false
@@ -83,6 +88,11 @@
               {
                 "input": "src/themes/modern/table-draft.css",
                 "bundleName": "theme-modern-table-draft",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/hall.css",
+                "bundleName": "theme-modern-hall",
                 "inject": false
               }
             ],

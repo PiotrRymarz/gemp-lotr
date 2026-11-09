@@ -81,6 +81,8 @@ export class ChatService {
   /** Tournament messages, for their dialog (part 4.2 decides who sees it: hallUi.js tournamentCallback). */
   readonly tournamentAnnouncements$: Observable<TournamentAnnouncement> = this.announcements.asObservable();
 
+  /** Joined and updating (start() was called, and neither stop() nor a failure has ended it). */
+  private running = false;
   private nextId = 1;
   private lastWarning: string | null = null;
   private timer: TimerHandle | null = null;
@@ -110,11 +112,21 @@ export class ChatService {
     });
   }
 
-  /** Joins the room and keeps it updated; nothing when already started. */
+  /**
+   * Joins the room and keeps it updated; nothing while it is. After stop() (the page was left and is shown again) it
+   * joins afresh: the room's history comes again, so the lines shown before go.
+   */
   start(): void {
-    if (this.started()) {
+    if (this.running) {
       return;
     }
+    if (this.started()) {
+      this.lines_.set([]);
+      this.users_.set([]);
+      this.stopped.set(false);
+      this.lastWarning = null;
+    }
+    this.running = true;
     this.started.set(true);
     this.loggedOut.set(false);
     this.request = this.api.join(this.room).subscribe({
@@ -123,8 +135,9 @@ export class ChatService {
     });
   }
 
-  /** Stops the updates (the page is left); the lines stay. */
+  /** Stops the updates (the page is left, or a failure); the lines stay until start() joins again. */
   stop(): void {
+    this.running = false;
     this.timers.clear(this.timer);
     this.timer = null;
     this.request?.unsubscribe();

@@ -48,9 +48,19 @@ describe('ui boundary', () => {
   });
 
   it("keeps ui/shared free of any page's own code (it uses the page's CARD_ACTIONS, not DeckbuilderActions)", () => {
-    // Shared parts may use core's cards, notifier and platform; the pages' state (actions, deck, collection, packs,
-    // delivery, login, merchant, ...) and the pages' own ui are theirs
-    const shared = new Set(['core/cards/', 'core/notifier/', 'core/platform/', 'ui/shared/']);
+    // Shared parts may use core's cards, notifier and platform, and the chat's data (its lines, users, wording and
+    // markup, for gd-chat, which the hall, the table draft and the game show; not a page's chat service); the pages'
+    // state (actions, deck, collection, packs, delivery, login, merchant, ...) and the pages' own ui are theirs
+    const shared = new Set([
+      'core/cards/',
+      'core/notifier/',
+      'core/platform/',
+      'core/chat/chat-models',
+      'core/chat/chat-format',
+      'core/chat/chat-messages',
+      'core/chat/chat-markup',
+      'ui/shared/',
+    ]);
     const pageImports = files
       .filter(({ name }) => name.startsWith('ui/shared/'))
       .flatMap(({ file, name, source }) =>

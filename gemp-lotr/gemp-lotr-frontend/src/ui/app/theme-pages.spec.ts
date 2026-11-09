@@ -26,9 +26,9 @@ function allRoutes(routes: Routes): Route[] {
 const pageRoutes = allRoutes(APP_ROUTES).filter((route) => route.data?.['page'] !== undefined);
 
 describe('theme CSS per page', () => {
-  it('has the page routes to check (the deck builder, the login page, the merchant, the solo draft, the table draft)', () => {
+  it('has the page routes to check (the deck builder, the login page, the merchant, the solo draft, the table draft, the hall)', () => {
     expect(pageRoutes.map((route) => route.data!['page'])).toEqual(
-      expect.arrayContaining(['deckbuilder', 'login', 'merchant', 'solo-draft', 'table-draft']),
+      expect.arrayContaining(['deckbuilder', 'login', 'merchant', 'solo-draft', 'table-draft', 'hall']),
     );
   });
 

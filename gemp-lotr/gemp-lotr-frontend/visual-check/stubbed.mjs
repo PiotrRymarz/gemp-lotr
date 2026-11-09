@@ -124,6 +124,8 @@ for (const page of pages) {
         context.setDefaultTimeout(timeout);
         const log = [];
         await route(context, log, page.answer, scenario);
+        // Browser state the page starts with (e.g. a setting in localStorage), the same on both pages
+        await (scenario.init ?? page.init)?.(context);
         const tab = await context.newPage();
         tab.on('pageerror', (error) => log.push(`page error: ${error.message}`));
         const file = path.join(outDir, `${page.prefix ?? `${page.name}-`}${scenario.name}-${size.label}-${which}.png`);

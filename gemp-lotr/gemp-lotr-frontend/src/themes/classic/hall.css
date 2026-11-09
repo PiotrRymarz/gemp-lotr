@@ -1,0 +1,598 @@
+/*
+ * The classic theme's hall, built into theme-classic-hall.css: ThemeService loads it after the theme's base (base.css,
+ * which also draws the chat), on the hall page only. The legacy hall.html: #main (a jQuery UI 1.13 "dark-hive" tabs
+ * widget, at most 1400px wide in the body's 8px margin) holding the tab bar, the tab panel (#gameHall: a 12px strip of
+ * the widget's background below .hall-tab's gradient; #serverInfo's link buttons and MOTD on top), the main bar
+ * (.buttons-gutter), the chat (#chat: 300px high plus 5px, with jQuery UI's resize bar along its top) and the
+ * disclaimer. Sizes come from css/gemp-001/{hall,icons}.css and the jQuery UI theme (widget font 1.1em of 12px).
+ * Icons are the legacy images/icons (Font Awesome, CC BY 4.0, and game-icons.net, CC BY 3.0), and the backgrounds
+ * the legacy hall's jQuery UI 1.13.2 images (MIT licensed), copied to public/themes/classic/hall/.
+ */
+
+/* The legacy hall had no shared header */
+.gd-shell[data-page='hall'] > .gd-shell__header {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- page frame (#main) */
+
+.gd-hall {
+  /* The legacy hall's jQuery UI 1.13 build: the same "dark-hive" colours, but its own images */
+  --classic-content-bg: #000 url('/gemp-lotr/ng/themes/classic/hall/ui-bg_loop_25_000000_21x21.png') 50% 50% repeat;
+  --classic-default-bg: #222 url('/gemp-lotr/ng/themes/classic/hall/ui-bg_highlight-soft_35_222222_1x100.png') 50% 50%
+    repeat-x;
+  --classic-hover-bg: #003147 url('/gemp-lotr/ng/themes/classic/hall/ui-bg_highlight-soft_33_003147_1x100.png') 50% 50%
+    repeat-x;
+  --classic-active-bg: #0972a5 url('/gemp-lotr/ng/themes/classic/hall/ui-bg_highlight-hard_20_0972a5_1x100.png') 50% 50%
+    repeat-x;
+  --classic-header-bg: #444 url('/gemp-lotr/ng/themes/classic/hall/ui-bg_highlight-soft_44_444444_1x100.png') 50% 50%
+    repeat-x;
+  --classic-icons: url('/gemp-lotr/ng/themes/classic/hall/ui-icons_cccccc_256x240.png');
+  --classic-icons-hover: url('/gemp-lotr/ng/themes/classic/hall/ui-icons_ffffff_256x240.png');
+  position: fixed;
+  inset: 8px;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto auto 10px;
+  grid-template-areas: 'tabs' 'panel' 'bar' 'chat' 'disclaimer';
+  border-radius: 6px;
+  background: var(--classic-content-bg);
+  color: #fff;
+  font-family: var(--classic-widget-font);
+  font-size: 13.2px;
+}
+
+/* ---------------------------------------------------------------- the tab bar (.ui-tabs-nav) */
+
+.gd-hall__tabs {
+  grid-area: tabs;
+  display: flex;
+  align-items: flex-start;
+  padding: 2.64px 2.64px 0;
+  border: 1px solid #333;
+  border-radius: 6px;
+  background: var(--classic-header-bg);
+}
+
+.gd-hall__tab {
+  /* a 20px box with the text at its top (a button centres its content: the box is the text's height, padded below) */
+  box-sizing: content-box;
+  height: 17.16px;
+  margin: 1px 2.64px 0 0;
+  padding: 6.6px 13.2px 9.44px 35px;
+  border: 1px solid #444;
+  border-bottom-width: 0;
+  border-radius: 6px 6px 0 0;
+  background: var(--classic-default-bg);
+  color: #fff;
+  font: inherit;
+  line-height: 17.16px;
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: top;
+  cursor: pointer;
+  position: relative;
+}
+
+/* The tab's icon (.custom-icon: 20px, the Game Hall's 25px, 10px in and centred), drawn white */
+.gd-hall__tab::before {
+  content: '';
+  position: absolute;
+  left: 10px;
+  top: 6.6px;
+  width: 20px;
+  height: 20px;
+  background: no-repeat 0 0 / 100%;
+  filter: brightness(0) invert(1);
+}
+
+.gd-hall__tab[data-tab='game-hall']::before {
+  top: 4.1px;
+  width: 25px;
+  height: 25px;
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/swords.svg');
+}
+.gd-hall__tab[data-tab='help']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/circle-question-solid.svg');
+}
+.gd-hall__tab[data-tab='events']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/flag-solid.svg');
+}
+.gd-hall__tab[data-tab='info']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/chart-line-solid.svg');
+}
+.gd-hall__tab[data-tab='users']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/users-solid.svg');
+}
+.gd-hall__tab[data-tab='account']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/gear-solid.svg');
+}
+.gd-hall__tab[data-tab='admin']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/toolbox-solid.svg');
+}
+
+.gd-hall__tab:hover,
+.gd-hall__tab:focus-visible {
+  border-color: #0b93d5;
+  background: var(--classic-hover-bg);
+  outline: none;
+}
+
+.gd-hall__tab[aria-selected='true'] {
+  margin-bottom: -1px;
+  padding-bottom: 10.44px;
+  border-color: #26b3f7;
+  background: var(--classic-active-bg);
+  cursor: text;
+}
+
+/* ---------------------------------------------------------------- the tab panels (#gameHall, .hall-tab) */
+
+/* The panel's gradient stops 1rem short of the bar: the frame's background shows below it */
+.gd-hall__panel {
+  grid-area: panel;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-height: 0;
+  padding-bottom: 12px;
+  overflow: hidden;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(to top, #200902, #111 80%) 0 0 / 100% calc(100% - 12px) no-repeat;
+}
+
+gd-hall-placeholder {
+  display: block;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* #serverInfo: the link buttons and the message of the day */
+.gd-hall__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 1;
+  padding: 7px;
+  border-bottom: 3px solid #bf8a4a;
+  border-radius: 6px;
+  background: linear-gradient(to top, #333, #111 40%, #111);
+}
+
+.gd-hall__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+
+/* .toolbar-button.ui-button */
+.gd-hall__link,
+.gd-hall__action {
+  display: inline-block;
+  margin-right: 1.32px;
+  border: 1px solid #444;
+  border-radius: 6px;
+  background: var(--classic-default-bg);
+  color: #eee;
+  font: inherit;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+}
+
+.gd-hall__link {
+  padding: 5.28px 10.56px;
+}
+
+.gd-hall__link:hover,
+.gd-hall__link:focus-visible,
+.gd-hall__action:hover,
+.gd-hall__action:focus-visible {
+  border-color: #0b93d5;
+  background: var(--classic-hover-bg);
+  color: #fff;
+  outline: none;
+}
+
+/* The icon (.custom-icon): 20px, in a 30px box before the label, drawn white */
+.gd-hall__link::before {
+  content: '';
+  display: inline-block;
+  box-sizing: content-box;
+  width: 0;
+  height: 20px;
+  padding-left: 30px;
+  background: transparent no-repeat 0 0 / 20px;
+  filter: brightness(0) invert(1);
+  vertical-align: middle;
+}
+
+.gd-hall__link[data-link='bug']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/bug-solid.svg');
+}
+.gd-hall__link[data-link='report']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/ban-solid.svg');
+}
+.gd-hall__link[data-link='discord']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/discord-brands.svg');
+}
+.gd-hall__link[data-link='wiki']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/book-open-solid.svg');
+}
+.gd-hall__link[data-link='merchant']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/store-slash-solid.svg');
+}
+
+.gd-hall__motd {
+  flex-grow: 1;
+  margin: 5px;
+  color: #fff;
+}
+
+.gd-hall__motd a {
+  color: #e88104;
+}
+
+/* ---------------------------------------------------------------- the main bar (.buttons-gutter) */
+
+.gd-hall__bar {
+  grid-area: bar;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  height: 40px;
+  padding: 5px;
+  border-top: 1px solid #aaa;
+  background-color: #333;
+}
+
+.gd-hall__bar > gd-hall-connection,
+.gd-hall__clock {
+  flex: 1 1 0;
+  min-width: max-content;
+}
+
+.gd-hall__actions {
+  display: flex;
+  flex: 0 1 auto;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+}
+
+/* .play-buttons.ui-button: 15rem wide (the link's content box, the button's border box, as in the legacy page) */
+.gd-hall__action {
+  width: 180px;
+  padding: 5.28px 13.2px;
+  border-color: #aaa;
+  line-height: normal;
+}
+
+a.gd-hall__action {
+  box-sizing: content-box;
+}
+
+button.gd-hall__action {
+  box-sizing: border-box;
+}
+
+.gd-hall__action-label {
+  font-weight: bold;
+}
+
+/* The icon (.bigger-icon): an inline box 50px wide and 10px over the text, its 35px image cut to it */
+.gd-hall__action::before {
+  content: '';
+  padding: 10px 0 0 50px;
+  background: transparent no-repeat 0 0 / 35px;
+  filter: brightness(0) invert(1);
+  vertical-align: middle;
+}
+
+.gd-hall__action[data-action='deckbuilder']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/hammer-solid.svg');
+}
+
+.gd-hall__action[data-action='play'] {
+  background: #540 linear-gradient(#845826, #1c1c1c);
+}
+
+.gd-hall__action[data-action='play']:hover,
+.gd-hall__action[data-action='play']:focus-visible {
+  background: #540 linear-gradient(#bf8a4a, #1c1c1c);
+}
+
+.gd-hall__action[data-action='play']::before {
+  background-image: url('/gemp-lotr/ng/themes/classic/hall/card-random.svg');
+  filter: invert(74%) sepia(62%) saturate(1872%) hue-rotate(333deg) brightness(101%) contrast(92%);
+}
+
+.gd-hall__clock {
+  min-width: 10ch;
+  margin: 0;
+  padding: 5px;
+  color: #dd0;
+  text-align: right;
+}
+
+/* ---------------------------------------------------------------- the connection readout */
+
+.gd-hall-connection {
+  position: relative;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+.gd-hall-connection__readout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  border: none;
+  border-radius: 3px;
+  background: none;
+  color: #ccc;
+  font: inherit;
+  cursor: pointer;
+}
+
+.gd-hall-connection__readout:hover,
+.gd-hall-connection__readout:focus-visible {
+  background-color: #444;
+  color: #fff;
+}
+
+.gd-hall-connection__dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: #f08c28;
+  box-shadow: 0 0 0 1px #0006;
+}
+
+.gd-hall-connection[data-state='connected'] .gd-hall-connection__dot {
+  background-color: #3fbf5f;
+}
+
+.gd-hall-connection[data-state='shutdown'] .gd-hall-connection__dot {
+  background-color: #f5e030;
+}
+
+.gd-hall-connection[data-state='shutdown'] .gd-hall-connection__label {
+  color: #f5e36a;
+}
+
+.gd-hall-connection[data-state='disconnected'] .gd-hall-connection__dot {
+  background-color: #e04040;
+}
+
+.gd-hall-connection[data-state='disconnected'] .gd-hall-connection__label {
+  color: #ff8080;
+}
+
+.gd-hall-connection[data-state='loggedout'] .gd-hall-connection__dot {
+  background-color: #909090;
+}
+
+.gd-hall-connection__login {
+  margin-left: 4px;
+  padding: 2px 4px;
+  color: #e88104;
+  white-space: nowrap;
+}
+
+.gd-hall-connection__login:hover,
+.gd-hall-connection__login:focus-visible {
+  color: #ffa640;
+}
+
+.gd-hall-connection__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.gd-hall-connection__popup {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 0;
+  z-index: 200;
+  min-width: 16rem;
+  max-width: min(22rem, 90vw);
+  padding: 0.5em 0.7em;
+  border: 1px solid #666;
+  border-radius: 4px;
+  background-color: #222;
+  box-shadow: 0 2px 8px #000a;
+  color: #eee;
+  font-size: 90%;
+  white-space: normal;
+}
+
+.gd-hall-connection__popup > p {
+  margin: 0;
+}
+
+.gd-hall-connection__popup > p + p {
+  margin-top: 0.3em;
+}
+
+.gd-hall-connection__popup a {
+  color: #e88104;
+}
+
+/* ---------------------------------------------------------------- the chat (#chat) and its resize bar */
+
+.gd-hall > gd-chat {
+  grid-area: chat;
+  height: clamp(100px, var(--gd-chat-height, 300px), calc(100vh - 160px));
+  padding-top: 5px;
+}
+
+/* jQuery UI's .ui-resizable-n over the chat's top edge: 6px of #777 (its first px hidden), a #999 grip in the middle */
+.gd-hall__resizer {
+  grid-area: chat;
+  align-self: start;
+  position: relative;
+  z-index: 5;
+  height: 6px;
+  background-color: #777;
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.gd-hall__resizer::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 45%;
+  width: 10%;
+  height: 8px;
+  background: #999;
+}
+
+.gd-hall__resizer:focus-visible {
+  outline: 2px solid #e88104;
+  outline-offset: -1px;
+}
+
+.gd-hall__resizer[data-dragging],
+.gd-hall:has(.gd-hall__resizer[data-dragging]) * {
+  cursor: ns-resize;
+  user-select: none;
+}
+
+.gd-hall:has(.gd-hall__resizer[data-dragging]) iframe {
+  pointer-events: none;
+}
+
+/* The user list's column is as wide as the players' entries (the legacy chat locked it to the own entry's width):
+   the switch button takes the column's width and doesn't widen it (without an own entry, a visitor's, it does) */
+.gd-hall .gd-chat__people:has([data-self]) .gd-chat__switch {
+  contain: inline-size;
+}
+
+/* The column keeps the width of the own entry at its widest (chat.js lockUserListWidth): the chip's cell also holds
+   a hidden "incognito" chip, and 1px to spare plus about what the legacy page's rounding up added */
+.gd-hall .gd-chat__user[data-self] {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  justify-content: start;
+  justify-items: start;
+  align-items: center;
+  column-gap: 0;
+}
+
+.gd-hall .gd-chat__user[data-self] > .gd-chat__name {
+  grid-column: 1;
+  max-width: 100%;
+}
+
+.gd-hall .gd-chat__user[data-self] > .gd-chat__role {
+  grid-column: 2;
+  margin-left: 0.3em;
+}
+
+.gd-hall .gd-chat__user[data-self] > .gd-chat__visibility,
+.gd-hall .gd-chat__user[data-self]::after {
+  grid-column: 3;
+  grid-row: 1;
+  margin-left: 0.3em;
+}
+
+.gd-hall .gd-chat__user[data-self]::after {
+  content: 'incognito';
+  box-sizing: border-box;
+  max-height: 0;
+  margin-right: 1.4px;
+  padding: 0 0.4em;
+  border: solid transparent;
+  border-width: 0 1px;
+  overflow: hidden;
+  font-family: var(--classic-widget-font);
+  visibility: hidden;
+}
+
+/* ---------------------------------------------------------------- the disclaimer */
+
+.gd-hall__disclaimer {
+  grid-area: disclaimer;
+  margin: 0;
+  color: #fff;
+  font-size: 70%;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- the "Not logged in" dialog (a jQuery UI dialog) */
+
+.gd-dialog[data-dialog='login-required'] {
+  --classic-dialog-width: 380px;
+  --classic-dialog-height: 155.12px;
+  resize: none;
+}
+
+/* jQuery UI 1.13 centres a dialog at fractional pixels (1.8, the deck builder's, at whole ones) */
+.gd-hall .gd-dialog:not([data-placed]) {
+  left: calc((100vw - var(--classic-dialog-width) - 0.4em - 2px) / 2);
+  top: max(0px, calc((100vh - var(--classic-dialog-height) - 0.4em - 2px) / 2));
+}
+
+/* The button pane (.ui-dialog-buttonpane.ui-widget-content) draws the widget's background of its own */
+.gd-hall .gd-dialog__actions {
+  background: var(--classic-content-bg);
+}
+
+/* jQuery UI 1.13's close button: a 20px icon button in the default state */
+.gd-hall .gd-dialog__close {
+  box-sizing: border-box;
+  width: 20px;
+  height: 20px;
+  padding: 1px;
+  border: 1px solid #444;
+  background: var(--classic-default-bg);
+}
+
+.gd-hall .gd-dialog__close::before {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -8px 0 0 -8px;
+  background: var(--classic-icons) -96px -128px no-repeat;
+}
+
+.gd-hall .gd-dialog__close:hover::before,
+.gd-hall .gd-dialog__close:focus-visible::before {
+  background-image: var(--classic-icons-hover);
+}
+
+.gd-hall__login-required {
+  margin: 0.3em 0;
+}
+
+.gd-dialog[data-dialog='login-required'] .gd-button:focus-visible {
+  outline: -webkit-focus-ring-color auto 1px;
+}
+
+.gd-dialog[data-dialog='login-required'] .gd-button {
+  display: inline-block;
+  margin: 6.6px 5.28px 6.6px 0;
+  padding: 5.28px 13.2px;
+  font-size: 13.2px;
+  line-height: normal;
+  text-decoration: none;
+}

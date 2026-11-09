@@ -156,6 +156,20 @@ now. In `card-info` the Angular page shows the app's card information. In `lost`
 polled `/tableDraft/null`) the legacy page wrote its warnings in that hidden chat; the Angular page shows them in red
 in the message's place, with "Try again" (`lost`), or says there is no draft (`no-event`).
 
+### Hall scenarios
+
+`/gemp-lotr/hall.html` against `/gemp-lotr/ng/hall` (in `pages/hall.mjs`: part 4.1, the hall's frame and chat; the
+player is "alice"; GET `/hall` is a snapshot with the MOTD and the clock and no tables; the hall's and the chat's long
+polls are left waiting (`polls`), so the page is shot as first drawn; the chat holds five messages, a ping and a mention
+among them, and four players, one of them ignored): `initial` (the Discord chat, both chats' default), `chat` (the
+built-in chat), `connection-lost` (a poll answers 409: "Disconnected", its popup pinned by a click), `reconnecting` (a
+poll answers 503: "Reconnecting", the popup on hover), `visitor` (the hall, the chat and the player answer 401: "Not
+logged in", the chat's warning and the "Not logged in" dialog) and `user-menu` (bob's menu). Compare the frame and the
+chat: the Game Hall tab's tables (legacy: the four empty table sections; Angular: an empty placeholder) belong to part
+4.2, the other tabs' content to 4.3-4.5, the menu's "Invite to table" to 4.2. In classic, `initial`, `chat`,
+`connection-lost` and `reconnecting` match the legacy page but for about 20 anti-aliased pixels of the icons; in
+`visitor` the dialog's button pane differs in its background texture's phase only.
+
 ### Adding a page
 
 Add `pages/<name>.mjs` and list it in `pages/index.mjs`. It exports by default:
@@ -173,6 +187,7 @@ export default {
   },
   skip: (scenario, mode) => false, // optional: a reason to skip (mode: { theme, touch, width, height })
   polls: false, // optional: the pages poll the server, so wait a fixed 1.5 s rather than for the network to idle
+  init: async (context) => {}, // optional: browser state for every scenario, e.g. localStorage (a scenario's own replaces it)
   scenarios: [
     { name: 'loaded', act: async () => {} },
     {
@@ -185,6 +200,11 @@ export default {
     { name: 'wide-only', skip: (mode) => mode.touch && 'not on touch screens', act: async () => {} },
     // An answer that never comes ({ hang: true }) keeps the page busy; `pending` skips waiting for the network to idle
     { name: 'busy', pending: true, answers: { '/login': { hang: true } }, act: async () => {} },
+    {
+      name: 'stored',
+      init: (context) => context.addInitScript(() => localStorage.setItem('k', 'v')),
+      act: async () => {},
+    },
   ],
 };
 ```
