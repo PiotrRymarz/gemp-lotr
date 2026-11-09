@@ -90,6 +90,17 @@ export default {
       },
     },
     {
+      // Where the theme folds the filter's details away (modern, phones): the toggle shows them
+      name: 'filters-open',
+      angularOnly: true,
+      skip: (mode) =>
+        (mode.theme !== 'modern' || mode.width >= 768) && 'the filter folds away on phones in modern only',
+      act: async (page) => {
+        await page.click('.gd-merchant-filter__toggle');
+        await page.mouse.move(0, 0);
+      },
+    },
+    {
       name: 'error',
       answers: { '/merchant': { status: 500 } },
       act: async () => {},

@@ -60,6 +60,10 @@
   margin: 0;
 }
 
+.gd-merchant-filter__toggle {
+  display: none;
+}
+
 .gd-culture {
   display: inline-flex;
   padding: 2px;

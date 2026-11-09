@@ -7,9 +7,10 @@
  * 1.8.16 dark-hive theme (widgets at 1.1em of the page's 12px: 13.2px; button text at 70% of that).
  */
 
-/* The legacy merchant had no shared header; nor does it use the cards' ⓘ spot */
+/* The legacy merchant had no shared header; nor does it use the cards' ⓘ spot or fold its filter away */
 .gd-shell[data-page='merchant'] > .gd-shell__header,
-.gd-merchant .gd-card > .gd-card__info {
+.gd-merchant .gd-card > .gd-card__info,
+.gd-merchant-filter__toggle {
   display: none;
 }
 

@@ -151,4 +151,24 @@ describe('MerchantFilterComponent', () => {
     expect(merchant.hideMerchant()).toBe(true);
     expect(requests().length).toBeGreaterThan(0);
   });
+
+  it('folds and unfolds the details with the toggle, sending nothing', async () => {
+    const { el, fixture } = await render();
+    const toggle = el.querySelector<HTMLButtonElement>('button.gd-merchant-filter__toggle')!;
+    const details = el.querySelector<HTMLElement>('.gd-merchant-filter__details')!;
+    expect(toggle.getAttribute('aria-controls')).toBe(details.id);
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(el.hasAttribute('data-filters-open')).toBe(false);
+
+    toggle.click();
+    await fixture.whenStable();
+    expect(toggle.getAttribute('aria-expanded')).toBe('true');
+    expect(el.hasAttribute('data-filters-open')).toBe(true);
+
+    toggle.click();
+    await fixture.whenStable();
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(el.hasAttribute('data-filters-open')).toBe(false);
+    expect(requests().length).toBe(0);
+  });
 });

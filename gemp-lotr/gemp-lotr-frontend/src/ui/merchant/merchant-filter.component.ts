@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import {
   cultureImage,
   MERCHANT_CARD_TYPE_OPTIONS,
@@ -48,6 +48,8 @@ export const WIKI_CARD_SEARCH = 'https://wiki.lotrtcgpc.net/wiki/Special:RunQuer
  * - `p.gd-merchant-filter__wiki` with its link;
  * - `.gd-merchant-filter__inputs`: `.gd-merchant-field[data-field]` (set, name, sort, rarity), each a `label`
  *   holding a visually hideable `span.gd-merchant-field__label` and the `select` or `input[type=text]`;
+ * - `button.gd-merchant-filter__toggle` (`aria-expanded`, and `data-filters-open` on the filter while expanded): shows
+ *   or hides the details below, for a theme that folds them away on small screens (it does nothing by itself);
  * - `.gd-merchant-filter__details`: `.gd-cultures` (`role=group`) with `.gd-cultures__group[data-group]` (main,
  *   hobbit; `hidden` when not shown) of `label.gd-culture` (`data-culture`, `data-active`) holding a visually hidden
  *   checkbox `.gd-culture__input` and `img.gd-culture__icon`; then `.gd-merchant-filter__selects` with the fields
@@ -59,7 +61,7 @@ export const WIKI_CARD_SEARCH = 'https://wiki.lotrtcgpc.net/wiki/Special:RunQuer
 @Component({
   selector: 'gd-merchant-filter',
   imports: [NgTemplateOutlet, MerchantPriceComponent],
-  host: { class: 'gd-merchant-filter' },
+  host: { class: 'gd-merchant-filter', '[attr.data-filters-open]': "filtersOpen() ? '' : null" },
   templateUrl: './merchant-filter.component.html',
 })
 export class MerchantFilterComponent {
@@ -88,6 +90,9 @@ export class MerchantFilterComponent {
     { id: 'hobbit', cultures: MERCHANT_HOBBIT_CULTURES },
   ];
   protected readonly cultureImage = cultureImage;
+
+  /** Whether the details are shown where the theme folds them away (the toggle); folded at first. */
+  protected readonly filtersOpen = signal(false);
 
   protected readonly selected = computed(() => new Set(this.merchant.fields().cultures));
 

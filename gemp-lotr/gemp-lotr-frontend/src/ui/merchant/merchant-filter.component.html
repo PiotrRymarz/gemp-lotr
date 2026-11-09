@@ -57,7 +57,17 @@
   }
 </div>
 
-<div class="gd-merchant-filter__details">
+<button
+  type="button"
+  class="gd-button gd-merchant-filter__toggle"
+  aria-controls="gd-merchant-filter-details"
+  [attr.aria-expanded]="filtersOpen()"
+  (click)="filtersOpen.set(!filtersOpen())"
+>
+  Filters
+</button>
+
+<div class="gd-merchant-filter__details" id="gd-merchant-filter-details">
   <div class="gd-cultures" role="group" aria-label="Cultures">
     @for (group of cultureGroups; track group.id) {
       <div class="gd-cultures__group" [attr.data-group]="group.id" [hidden]="groupHidden(group.id)">
