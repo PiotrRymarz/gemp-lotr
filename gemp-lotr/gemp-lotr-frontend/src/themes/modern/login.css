@@ -1,0 +1,81 @@
+/*
+ * The modern login page: a placeholder, readable but not yet designed (the modern login page is a later step). Built
+ * into theme-modern-login.css and loaded after the theme's base on the login page only.
+ */
+
+.gd-login {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-4);
+  box-sizing: border-box;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: calc(var(--m-shell-top) + var(--m-space-5)) var(--m-space-4) var(--m-space-5);
+}
+
+.gd-login__brand {
+  display: none;
+}
+
+.gd-login__banner {
+  margin: 0;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.gd-login__content,
+.gd-login__panel,
+.gd-login__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-3);
+}
+
+.gd-login__status,
+.gd-login__intro,
+.gd-login__forgot,
+.gd-login__about,
+.gd-login__shoutout-text {
+  margin: 0;
+}
+
+.gd-login__status {
+  color: var(--m-text-muted);
+}
+
+.gd-login__error:empty {
+  display: none;
+}
+
+.gd-login__error {
+  color: var(--m-danger);
+}
+
+.gd-login__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-1);
+}
+
+.gd-login__actions {
+  display: flex;
+  gap: var(--m-space-2);
+}
+
+.gd-login__info {
+  color: var(--m-text-muted);
+  font-size: var(--m-font-size-sm);
+  text-align: center;
+}
+
+.gd-login__shoutout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--m-space-2);
+  margin-top: var(--m-space-3);
+}
+
+.gd-login__force {
+  height: 20px;
+}

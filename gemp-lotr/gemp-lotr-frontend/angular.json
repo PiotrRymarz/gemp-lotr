@@ -36,6 +36,11 @@
                 "inject": false
               },
               {
+                "input": "src/themes/classic/login.css",
+                "bundleName": "theme-classic-login",
+                "inject": false
+              },
+              {
                 "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
                 "inject": false
@@ -43,6 +48,11 @@
               {
                 "input": "src/themes/modern/deckbuilder.css",
                 "bundleName": "theme-modern-deckbuilder",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/login.css",
+                "bundleName": "theme-modern-login",
                 "inject": false
               }
             ],

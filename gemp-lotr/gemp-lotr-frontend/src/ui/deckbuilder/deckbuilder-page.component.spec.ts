@@ -43,7 +43,6 @@ describe('DeckbuilderPageComponent', () => {
       'gd-pack-dialogs',
       'gd-card-info',
       'gd-auto-zoom',
-      'gd-notifier',
     ]);
     expect(el.querySelector('section.gd-page__deck > gd-deck.gd-deck')).not.toBeNull();
     expect(el.querySelector('gd-auto-zoom > .gd-zoom[hidden]')).not.toBeNull();

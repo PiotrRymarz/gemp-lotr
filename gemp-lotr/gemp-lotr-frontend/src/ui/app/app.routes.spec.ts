@@ -7,6 +7,7 @@ import { PAGE_QUERY_STRING } from '../../core/platform/page-location';
 import { ThemeService } from '../../core/platform/theme.service';
 import { provideFakeNotifier } from '../../testing/fake-notifier';
 import { DeckbuilderPageComponent } from '../deckbuilder/deckbuilder-page.component';
+import { LoginPageComponent } from '../login/login-page.component';
 import { AppComponent } from './app.component';
 import { APP_ROUTES } from './app.routes';
 
@@ -38,6 +39,14 @@ describe('app routes', () => {
   it('loads the deck builder at deckbuilder, with or without a trailing slash', async () => {
     expect((await open('/deckbuilder')).page).toBeInstanceOf(DeckbuilderPageComponent);
     expect((await open('/deckbuilder/')).page).toBeInstanceOf(DeckbuilderPageComponent);
+  });
+
+  it('loads the login page at login, with its own LoginService', async () => {
+    const { page, url } = await open('/login?participantId=bob');
+    expect(page).toBeInstanceOf(LoginPageComponent);
+    expect(url).toBe('/login?participantId=bob');
+    expect(harness.routeNativeElement!.classList).toContain('gd-login');
+    expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Login');
   });
 
   it('keeps the query string (?theme=, ?participantId=)', async () => {

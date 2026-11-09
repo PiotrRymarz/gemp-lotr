@@ -4,6 +4,7 @@ import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { filter, map } from 'rxjs';
 import { PlayerService } from '../../core/session/player.service';
 import { routePage } from '../app/theme-pages';
+import { NotifierDialogComponent } from '../shared/notifier/notifier-dialog.component';
 import { MenuComponent } from './menu.component';
 import { SettingsComponent } from './settings.component';
 import { SettingsService } from './settings.service';
@@ -12,16 +13,16 @@ import { HALL_HREF, SHELL_LINKS } from './shell-links';
 /**
  * What every page shares around it: a header (the app's title, leading to the hall; the navigation, as links and as a
  * menu for narrow screens; the logged-in player; the settings button), the page itself (projected: the router
- * outlet), and the settings dialog. The theme decides what of the header it shows on which page (`data-page`).
+ * outlet), the settings dialog and the Notifier's dialog (one for every page). The theme decides what of the header it shows on which page (`data-page`).
  *
  * DOM contract: `gd-shell.gd-shell` (`data-page` = the page shown, its route's `data.page`) holding
  * `header.gd-shell__header` with `a.gd-shell__title`, `nav.gd-shell__nav` (an `a.gd-shell__link` per page of
  * SHELL_LINKS: `data-page`, `aria-current=page` on the page shown), `.gd-shell__player` (the player's name, once known),
- * `gd-menu` and `button.gd-button[data-action=settings]`; then the page, then `gd-settings`.
+ * `gd-menu` and `button.gd-button[data-action=settings]`; then the page, then `gd-settings` and `gd-notifier`.
  */
 @Component({
   selector: 'gd-shell',
-  imports: [RouterLink, MenuComponent, SettingsComponent],
+  imports: [RouterLink, MenuComponent, SettingsComponent, NotifierDialogComponent],
   host: { class: 'gd-shell', '[attr.data-page]': 'page()' },
   template: `
     <header class="gd-shell__header">
@@ -57,6 +58,7 @@ import { HALL_HREF, SHELL_LINKS } from './shell-links';
     </header>
     <ng-content />
     <gd-settings />
+    <gd-notifier />
   `,
 })
 export class ShellComponent {

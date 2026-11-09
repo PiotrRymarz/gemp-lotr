@@ -109,6 +109,15 @@ the page as loaded): `settings` (the settings dialog, from the toolbar or the sh
 for a theme that shows them). Where the theme shows one pane at a time (modern, phone and tablet), the scenarios that
 use the collection first choose it in the tab bar (`.gd-page__tab[data-pane=collection]`).
 
+### Login page scenarios
+
+`/gemp-lotr/index.html` against `/gemp-lotr/ng/login` (the status line from `server-status.txt`, `/login` and
+`/register` answered OK unless the scenario says otherwise): `initial`, `register` (the register form), `error` (a
+wrong password: 401) and `busy` (the login call never answered; Angular only, as the legacy login call was synchronous
+and froze the page until the answer). In classic, `initial` and `register` match the legacy page exactly; in `error`
+the password field's border is the browser's hover border, as the mouse rests on its `label` (the legacy text was no
+label).
+
 ### Adding a page
 
 Add `pages/<name>.mjs` and list it in `pages/index.mjs`. It exports by default:
@@ -134,6 +143,8 @@ export default {
     { name: 'menu-open', angularOnly: true, act: openMenu }, // legacy side shown as loaded
     { name: 'empty', answers: { '/merchant/list': { xml: '...' } }, act: async () => {} }, // its own answers first
     { name: 'wide-only', skip: (mode) => mode.touch && 'not on touch screens', act: async () => {} },
+    // An answer that never comes ({ hang: true }) keeps the page busy; `pending` skips waiting for the network to idle
+    { name: 'busy', pending: true, answers: { '/login': { hang: true } }, act: async () => {} },
   ],
 };
 ```

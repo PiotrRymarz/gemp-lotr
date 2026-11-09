@@ -10,7 +10,6 @@ import { DeckListDialogComponent } from './dialogs/deck-list-dialog.component';
 import { ImportDialogComponent } from './dialogs/import-dialog.component';
 import { NotesDialogComponent } from './dialogs/notes-dialog.component';
 import { PackDialogsComponent } from './dialogs/pack-dialogs.component';
-import { NotifierDialogComponent } from '../shared/notifier/notifier-dialog.component';
 
 /** Arrow keys on the resizer move it by this much (px). */
 export const RESIZE_STEP = 10;
@@ -43,7 +42,6 @@ export type PagePane = 'deck' | 'collection';
     ImportDialogComponent,
     NotesDialogComponent,
     PackDialogsComponent,
-    NotifierDialogComponent,
   ],
   host: {
     class: 'gd-page',
@@ -97,7 +95,6 @@ export type PagePane = 'deck' | 'collection';
     <gd-pack-dialogs />
     <gd-card-info />
     <gd-auto-zoom />
-    <gd-notifier />
   `,
 })
 export class DeckbuilderPageComponent {

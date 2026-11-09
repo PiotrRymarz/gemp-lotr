@@ -127,7 +127,9 @@ for (const page of pages) {
           await tab.goto(ORIGIN + address);
           await settle(tab);
           if (which === 'angular' || !scenario.angularOnly) await scenario.act(tab, which);
-          await settle(tab);
+          // A scenario with a request left unanswered (`pending`) never goes idle: a short wait instead
+          if (scenario.pending) await tab.waitForTimeout(400);
+          else await settle(tab);
           await tab.screenshot({ path: file });
           shots++;
           console.log(`${file}${log.length ? `\n  ${[...new Set(log)].join('\n  ')}` : ''}`);

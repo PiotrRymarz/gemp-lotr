@@ -13,7 +13,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideHttpClient(),
     provideRouter(APP_ROUTES),
-    // Messages and questions, shown by the page's gd-notifier. App-wide, so every page's services (in its route's
+    // Messages and questions, shown by the shell's gd-notifier. App-wide, so every page's services (in its route's
     // providers) and the shared root services can ask, through the one queue
     DialogNotifier,
     { provide: Notifier, useExisting: DialogNotifier },

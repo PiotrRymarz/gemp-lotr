@@ -41,7 +41,8 @@ const isImage = (url) => /\.(jpe?g|png|gif)$/i.test(url.pathname);
 /**
  * Routes every request of `context`. `answer(path, url, request, scenario)` is the page module's: the server's answer
  * for a /gemp-lotr-server/ path (without that prefix), as { json } | { xml } | { file, type } (from
- * src/testing/server-responses) | { status }, or null (404, logged). A scenario's `answers[path]` comes first.
+ * src/testing/server-responses) | { status } | { hang: true } (never answered), or null (404,
+ * logged). A scenario's `answers[path]` comes first.
  */
 export async function route(context, log, answer, scenario) {
   await context.route(/.*/, async (route) => {
@@ -58,6 +59,7 @@ export async function route(context, log, answer, scenario) {
         log.push(`unanswered ${request.method()} ${url.pathname}`);
         return route.fulfill({ status: 404, body: '' });
       }
+      if (found.hang) return; // never answered: the page stays waiting (the context's closing ends it)
       if (found.status) return route.fulfill({ status: found.status, body: '' });
       if (found.json) return route.fulfill({ contentType: 'application/json', body: JSON.stringify(found.json) });
       if (found.xml) return route.fulfill({ contentType: 'application/xml', body: found.xml });

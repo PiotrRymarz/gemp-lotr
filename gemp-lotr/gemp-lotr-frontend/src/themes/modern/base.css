@@ -214,6 +214,7 @@ a:hover {
 
 select,
 input[type='text'],
+input[type='password'],
 input[type='number'],
 input:not([type]),
 textarea {
@@ -260,6 +261,7 @@ textarea:hover:enabled {
 
 select:focus-visible,
 input[type='text']:focus-visible,
+input[type='password']:focus-visible,
 input[type='number']:focus-visible,
 input:not([type]):focus-visible,
 textarea:focus-visible {

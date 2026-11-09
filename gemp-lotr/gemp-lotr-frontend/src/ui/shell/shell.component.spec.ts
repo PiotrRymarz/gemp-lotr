@@ -57,6 +57,7 @@ describe('ShellComponent', () => {
       'router-outlet.',
       'ng-component.',
       'gd-settings.',
+      'gd-notifier.',
     ]);
     const header = shell.querySelector('.gd-shell__header')!;
     expect(Array.from(header.children).map((child) => child.className || child.localName)).toEqual([

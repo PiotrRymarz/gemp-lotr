@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
+import { LOGIN_SERVICES } from '../../core/login/login-services';
 import { loadThemePage } from './theme-pages';
 
 /**
@@ -17,6 +18,14 @@ export const APP_ROUTES: Routes = [
     resolve: { themePage: loadThemePage },
     providers: DECKBUILDER_SERVICES,
     loadComponent: () => import('../deckbuilder/deckbuilder-page.component').then((m) => m.DeckbuilderPageComponent),
+  },
+  {
+    path: 'login',
+    title: 'GEMP: LotR-TCG - Login',
+    data: { page: 'login' },
+    resolve: { themePage: loadThemePage },
+    providers: LOGIN_SERVICES,
+    loadComponent: () => import('../login/login-page.component').then((m) => m.LoginPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
   { path: '**', redirectTo: 'deckbuilder' },

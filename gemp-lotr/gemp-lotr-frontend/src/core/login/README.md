@@ -27,3 +27,6 @@ calls in `js/gemp-022/communication.js`. Wording is in `login-messages.ts`; the 
 - Differences: switching to Register clears the old error (the legacy `$(".error").html()` was meant to and didn't);
   `showLogin()` goes back (the legacy page had no way back); the shell's player name is refreshed before leaving.
 - The info text below the form (Decipher, Player's Council, the Star Wars CCG GEMP shout-out) is static markup for the UI.
+- The page (`ui/login`) is one `<form>`: Enter submits from any field, in both forms (the legacy page listened for Enter
+  in the login form's password field only). While a call is under way its buttons are disabled (the legacy login call
+  was synchronous, so the page froze until the answer).
