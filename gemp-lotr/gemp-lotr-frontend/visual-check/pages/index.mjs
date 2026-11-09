@@ -2,5 +2,6 @@
 import deckbuilder from './deckbuilder.mjs';
 import login from './login.mjs';
 import merchant from './merchant.mjs';
+import soloDraft from './solo-draft.mjs';
 
-export const PAGES = [deckbuilder, login, merchant];
+export const PAGES = [deckbuilder, login, merchant, soloDraft];

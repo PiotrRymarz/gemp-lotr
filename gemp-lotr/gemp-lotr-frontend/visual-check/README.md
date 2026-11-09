@@ -129,6 +129,18 @@ phone (under 768px), `filters-open` (the filter's details unfolded with `.gd-mer
 `page-2` match the legacy page exactly, and `confirm` but for the focus ring around the dialog's Wiki link. In `error` the legacy page used the browser's alert, which a
 screenshot doesn't show; the Angular side shows the notifier's dialog over an empty page.
 
+### Solo draft scenarios
+
+`/gemp-lotr/soloDraft.html?eventId=VCHECK` against `/gemp-lotr/ng/draft/solo?eventId=VCHECK` (in `pages/solo-draft.mjs`:
+three picks on offer, a foil and a site among them; a drafted pool of fourteen copies; a pick gives three cards and
+offers three more): `initial`, `picked` (the first pick made), `card-info` (shift-click on a drafted card),
+`picture-picks` (picks shown by a picture), `finished` (no picks left), `empty-pool` (nothing drafted yet), `no-event`
+(both pages opened without `?eventId=`) and `error` (GET `/soloDraft/VCHECK` answers 500). In classic, `initial`,
+`picked`, `picture-picks`, `finished` and `empty-pool` match the legacy page exactly. In `card-info` the Angular page
+shows the app's card information (the legacy solo draft had a plainer dialog of its own). In `no-event` and `error`
+the legacy page only alerted (not in a screenshot); the Angular page says why in the message line, and in `error` also
+shows the notifier's dialog.
+
 ### Adding a page
 
 Add `pages/<name>.mjs` and list it in `pages/index.mjs`. It exports by default:
@@ -152,6 +164,7 @@ export default {
       act: (page, which) => page.click(which === 'legacy' ? '#sell' : '.gd-merchant [data-action=sell]'),
     },
     { name: 'menu-open', angularOnly: true, act: openMenu }, // legacy side shown as loaded
+    { name: 'no-query', legacy: '/gemp-lotr/x.html', angular: '/gemp-lotr/ng/x', act: async () => {} }, // own paths
     { name: 'empty', answers: { '/merchant/list': { xml: '...' } }, act: async () => {} }, // its own answers first
     { name: 'wide-only', skip: (mode) => mode.touch && 'not on touch screens', act: async () => {} },
     // An answer that never comes ({ hang: true }) keeps the page busy; `pending` skips waiting for the network to idle

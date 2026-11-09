@@ -68,6 +68,24 @@ describe('CardInfoComponent', () => {
     );
   });
 
+  it("shows a draft pick shown by a picture as that picture, without a wiki link, and doesn't flip it", async () => {
+    const { fixture, dialog, click } = await render();
+    info.show({
+      kind: 'draftChoice',
+      blueprintId: 'rules',
+      choice: { id: 'fp-elven', blueprintId: null, url: 'https://example.test/fp-elven.png' },
+    });
+    await fixture.whenStable();
+    const card = dialog.querySelector<HTMLElement>('.gd-card-info__card')!;
+    expect(card.querySelector<HTMLImageElement>('img.gd-card-info__image')!.src).toBe(
+      'https://example.test/fp-elven.png',
+    );
+    expect(card.hasAttribute('data-flippable')).toBe(false);
+    expect(dialog.querySelector('a.gd-card-info__wiki')).toBeNull();
+    await click('.gd-card-info__image');
+    expect(card.hasAttribute('data-flipped')).toBe(false);
+  });
+
   it('flips the card when it is clicked, and starts a new card face up', async () => {
     const { fixture, dialog, click } = await render();
     info.show(CARD);

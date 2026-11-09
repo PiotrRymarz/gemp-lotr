@@ -115,6 +115,15 @@ export class CardInfoComponent {
       return null;
     }
     const image = this.images.resolve(ref.blueprintId, zoneOf(ref));
+    // A draft pick shown by a picture shows that picture (the legacy page showed the "rules" card)
+    const picture = ref.kind === 'draftChoice' && ref.choice.blueprintId === null ? ref.choice.url : null;
+    if (picture) {
+      return {
+        data: { ...cardDisplayData(image, null), image: picture, back: null, foil: false },
+        wikiUrl: null,
+        flippable: false,
+      };
+    }
     const overlay = ref.kind === 'race' && ref.overlayBlueprintId ? this.images.imageUrl(ref.overlayBlueprintId) : null;
     return {
       data: cardDisplayData(image, overlay),

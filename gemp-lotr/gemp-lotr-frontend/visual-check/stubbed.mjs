@@ -80,10 +80,11 @@ const sizes = (options.viewport ?? options.sizes ?? 'desktop').split(',').map((s
 
 /**
  * The Angular page's address: --angular as a path (starting with /) replaces the page's, as a query (?a=b or a=b)
- * is added to it; then ?theme=<--theme>, unless the address names a theme.
+ * is added to it; then ?theme=<--theme>, unless the address names a theme. A scenario's own `angular` path (e.g. a
+ * page opened without its query) replaces the page's.
  */
-function angularAddress(page) {
-  let address = page.angular;
+function angularAddress(page, scenario) {
+  let address = scenario?.angular ?? page.angular;
   const given = options.angular;
   if (given?.startsWith('/')) address = given;
   else if (given) address += (address.includes('?') ? '&' : '?') + given.replace(/^\?/, '');
@@ -112,7 +113,8 @@ for (const page of pages) {
         console.log(`skip ${page.name}/${scenario.name} ${size.label}: ${skipped}`);
         continue;
       }
-      const sides = [...(page.legacy ? [['legacy', options.legacy ?? page.legacy]] : []), ['angular', angular]];
+      const legacy = options.legacy ?? scenario.legacy ?? page.legacy;
+      const sides = [...(legacy ? [['legacy', legacy]] : []), ['angular', angularAddress(page, scenario)]];
       for (const [which, address] of sides) {
         const context = await browser.newContext({
           viewport: { width: size.width, height: size.height },

@@ -1,0 +1,151 @@
+/*
+ * The modern theme's solo draft, built into theme-modern-solo-draft.css: ThemeService loads it after the theme's base
+ * (base.css, with the tokens), on the solo draft page only.
+ *
+ * A placeholder until the page gets its modern design: the picks above the drafted cards, each in a panel whose
+ * cards fit it (fitCards), below the shell's header. Phones (under 768px) show one pane at a time, chosen in the tab
+ * bar at the bottom.
+ */
+
+.gd-solo-draft .gd-card > .gd-card__info {
+  display: none;
+}
+
+.gd-solo-draft {
+  position: fixed;
+  inset: var(--m-shell-top) 0 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: clamp(160px, var(--gd-picks-height, 32%), calc(100% - 120px)) 8px minmax(0, 1fr);
+  gap: var(--m-space-2);
+  padding: var(--m-space-3);
+  box-sizing: border-box;
+  background: var(--m-bg);
+  color: var(--m-text);
+  font-family: var(--m-font);
+  font-size: var(--m-font-size);
+}
+
+.gd-solo-draft[data-picks='closed'] {
+  grid-template-rows: 0 8px minmax(0, 1fr);
+}
+
+.gd-solo-draft__picks,
+.gd-solo-draft__drafted {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-2);
+  min-height: 0;
+  padding: var(--m-space-3);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+}
+
+.gd-solo-draft__message,
+.gd-solo-draft__heading {
+  margin: 0;
+  font-size: var(--m-font-size);
+  font-weight: 600;
+}
+
+.gd-solo-draft__count {
+  color: var(--m-text-muted);
+  font-weight: 400;
+}
+
+.gd-solo-draft__error {
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-3);
+  color: var(--m-danger);
+}
+
+.gd-solo-draft__error-text {
+  margin: 0;
+}
+
+.gd-solo-draft__separator {
+  position: relative;
+  border-radius: var(--m-radius-pill);
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.gd-solo-draft__toggle {
+  position: absolute;
+  left: calc(50% - 24px);
+  top: 2px;
+  width: 48px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-border-strong);
+  cursor: pointer;
+}
+
+.gd-draft-picks,
+.gd-drafted-pool {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.gd-draft-picks__cards,
+.gd-drafted-pool__cards {
+  --gd-card-max-height: 220px;
+  --gd-card-gap: 8px;
+  --gd-card-fit: contain;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+.gd-drafted-pool__empty {
+  margin: 0;
+  color: var(--m-text-muted);
+}
+
+.gd-solo-draft .gd-page__tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .gd-solo-draft {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .gd-solo-draft__separator {
+    display: none;
+  }
+
+  .gd-solo-draft[data-pane='picks'] .gd-solo-draft__drafted,
+  .gd-solo-draft[data-pane='drafted'] .gd-solo-draft__picks {
+    display: none;
+  }
+
+  .gd-solo-draft .gd-page__tabs {
+    display: flex;
+    gap: var(--m-space-2);
+  }
+
+  .gd-solo-draft .gd-page__tab {
+    flex: 1 1 0;
+    min-height: 44px;
+    border: 1px solid var(--m-border);
+    border-radius: var(--m-radius-sm);
+    background: var(--m-surface-2);
+    color: var(--m-text);
+    font: inherit;
+  }
+
+  .gd-solo-draft .gd-page__tab[aria-selected='true'] {
+    border-color: var(--m-accent);
+    background: var(--m-accent-soft);
+  }
+}

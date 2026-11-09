@@ -13,6 +13,9 @@ does lives in `core/solo-draft` (and, next, `core/table-draft`).
 - `drafted-pool.ts`: the drafted pool, in display order: `addPicked` (picks come after what was drafted, as the legacy
   pages appended them), `draftedCopies` (one entry per copy, the legacy pages drew a card per copy), `poolCounts` and
   `poolSize`; `choiceBlueprintId` draws a picture pick as the "rules" card, as the legacy pages did.
+- `draft-cards.ts`: how the cards are drawn (`CardView`s for `ui/draft`): `choiceViews` (a card pick as its card,
+  zone "picks", with its foil layer; a picture pick as its picture, without a border) and `draftedViews` (one per
+  copy, zone "drafted").
 - Card refs (`core/cards/card-ref.ts`): `draftChoice` (a pick on offer, zone "picks") and `drafted` (a drafted copy,
   zone "drafted"). Each page provides its own `CARD_ACTIONS` (`SoloDraftCardActions`).
 - Deck builder hand-off: neither legacy draft page links to the deck builder. The drafted cards are the event's

@@ -46,6 +46,11 @@
                 "inject": false
               },
               {
+                "input": "src/themes/classic/solo-draft.css",
+                "bundleName": "theme-classic-solo-draft",
+                "inject": false
+              },
+              {
                 "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
                 "inject": false
@@ -63,6 +68,11 @@
               {
                 "input": "src/themes/modern/merchant.css",
                 "bundleName": "theme-modern-merchant",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/solo-draft.css",
+                "bundleName": "theme-modern-solo-draft",
                 "inject": false
               }
             ],

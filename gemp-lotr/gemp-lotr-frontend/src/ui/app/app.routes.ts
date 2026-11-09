@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
 import { LOGIN_SERVICES } from '../../core/login/login-services';
 import { MERCHANT_SERVICES } from '../../core/merchant/merchant-services';
+import { SOLO_DRAFT_SERVICES } from '../../core/solo-draft/solo-draft-services';
 import { MERCHANT_VIEW_PROVIDERS } from '../merchant/merchant-notifier';
 import { loadThemePage } from './theme-pages';
 
@@ -36,6 +37,15 @@ export const APP_ROUTES: Routes = [
     resolve: { themePage: loadThemePage },
     providers: [...MERCHANT_SERVICES, ...MERCHANT_VIEW_PROVIDERS],
     loadComponent: () => import('../merchant/merchant-page.component').then((m) => m.MerchantPageComponent),
+  },
+  {
+    // Opened from the hall and the league page with ?eventId= (a tournament id or a league code); no shell link
+    path: 'draft/solo',
+    title: 'GEMP: LotR-TCG - Draft',
+    data: { page: 'solo-draft' },
+    resolve: { themePage: loadThemePage },
+    providers: SOLO_DRAFT_SERVICES,
+    loadComponent: () => import('../solo-draft/solo-draft-page.component').then((m) => m.SoloDraftPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
   { path: '**', redirectTo: 'deckbuilder' },

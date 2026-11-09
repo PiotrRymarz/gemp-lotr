@@ -11,6 +11,8 @@ import { LoginPageComponent } from '../login/login-page.component';
 import { MerchantPageComponent } from '../merchant/merchant-page.component';
 import { MerchantNotifier } from '../merchant/merchant-notifier';
 import { MerchantService } from '../../core/merchant/merchant.service';
+import { SoloDraftService } from '../../core/solo-draft/solo-draft.service';
+import { SoloDraftPageComponent } from '../solo-draft/solo-draft-page.component';
 import { AppComponent } from './app.component';
 import { APP_ROUTES } from './app.routes';
 
@@ -62,6 +64,18 @@ describe('app routes', () => {
     expect(backend.match((req) => req.url === '/gemp-lotr-server/merchant')).toHaveLength(1);
     expect(() => TestBed.inject(MerchantService)).toThrow();
     expect(() => TestBed.inject(MerchantNotifier)).toThrow();
+  });
+
+  it('loads the solo draft at draft/solo (no shell link: the hall opens it), with its own SoloDraftService', async () => {
+    const { page, url } = await open('/draft/solo?eventId=20261101');
+    expect(page).toBeInstanceOf(SoloDraftPageComponent);
+    expect(url).toBe('/draft/solo?eventId=20261101');
+    expect(harness.routeNativeElement!.classList).toContain('gd-solo-draft');
+    expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Draft');
+    // The event comes from the page's own query string (PAGE_QUERY_STRING, empty here): nothing is asked
+    expect(harness.routeNativeElement!.dataset['state']).toBe('no-event');
+    expect(TestBed.inject(HttpTestingController).match(() => true)).toEqual([]);
+    expect(() => TestBed.inject(SoloDraftService)).toThrow();
   });
 
   it('keeps the query string (?theme=, ?participantId=)', async () => {
