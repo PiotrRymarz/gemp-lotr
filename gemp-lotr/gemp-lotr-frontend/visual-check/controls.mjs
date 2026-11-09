@@ -78,6 +78,9 @@ export const CONTROLS = {
   renameDeck: toolbar('#renameDeckBut', 'rename'),
   copyDeck: toolbar('#copyDeckBut', 'copy'),
   autoZoom: toolbar('#auto-zoom-toggle', 'auto-zoom'),
+  /** The settings (the theme, ...): the Angular page's own; the legacy page had none. */
+  settings: { legacy: null, angular: '.gd-toolbar [data-action="settings"]' },
+  settingsTheme: { legacy: null, angular: '.gd-settings [data-setting="theme"] select' },
   format: { legacy: '#formatSelect', angular: 'select.gd-toolbar__format' },
   collection: { legacy: '#collectionSelect', angular: 'select.gd-toolbar__collection' },
 

@@ -72,8 +72,9 @@ server's answers come from `src/testing/server-responses` plus a generated colle
 labelled placeholders on both pages. It compares nothing by itself; look at the pairs in `report-stubbed/`. Scenarios: `collection`, `second-page`, `shadow-filter`, `deck` (a few cards, copies and sites in the deck, with the
 stubbed stats), `zoom-deck` and `zoom-collection` (the hover zoom), `card-info`, and the dialogs: `deck-list`,
 `library`, `import`, `import-typed`, `notes`, `selection` (the selection pack's "Choose one"), `delivery` ("New items",
-from a stubbed pack delivery), `pane-collection`, `pane-deck` and `info-button` (the tab bar and the cards' ⓘ, for a
-theme that shows them; the legacy side shows the page as loaded), `confirm` and `prompt` (deleting and renaming a deck; the legacy page used the
+from a stubbed pack delivery), `settings` (the toolbar's settings dialog), `pane-collection`, `pane-deck` and
+`info-button` (the tab bar and the cards' ⓘ, for a theme that shows them; the legacy side shows the page as loaded for
+these four), `confirm` and `prompt` (deleting and renaming a deck; the legacy page used the
 browser's own dialogs, which screenshots don't show, so its side shows only the page behind). A scenario can answer
 server requests its own way (`answers`). Its selectors come from `controls.mjs`, shared with `run.mjs`.
 

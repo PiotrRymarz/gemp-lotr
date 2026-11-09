@@ -487,11 +487,6 @@
   min-width: 84px;
 }
 
-.gd-toolbar__theme {
-  flex: 0 1 88px;
-  min-width: 80px;
-}
-
 .gd-toolbar__deck-name {
   order: -1;
   flex: 1 1 80px;
@@ -756,7 +751,7 @@ button.gd-slot__label:hover .gd-slot__hint {
 
   /*
    * A deck pane too narrow for one row: two planned rows rather than a ragged wrap. The name, the format and the
-   * notes on top; the deck actions, then the collection and theme pickers, below.
+   * notes on top; the deck actions, then the collection picker and the settings, below.
    */
   @container (max-width: 789.98px) {
     .gd-toolbar::after {
@@ -774,7 +769,7 @@ button.gd-slot__label:hover .gd-slot__hint {
     }
 
     .gd-toolbar__collection,
-    .gd-toolbar__theme {
+    .gd-toolbar [data-action='settings'] {
       order: 3;
     }
 
@@ -1128,8 +1123,7 @@ button.gd-slot__label:hover .gd-slot__hint {
   }
 
   .gd-toolbar__format,
-  .gd-toolbar__collection,
-  .gd-toolbar__theme {
+  .gd-toolbar__collection {
     flex: 1 1 0;
     max-width: none;
   }
@@ -1238,8 +1232,7 @@ button.gd-slot__label:hover .gd-slot__hint {
 
   /* The pickers stay on the deck actions' row */
   .gd-toolbar__format,
-  .gd-toolbar__collection,
-  .gd-toolbar__theme {
+  .gd-toolbar__collection {
     flex: 1 1 100px;
   }
 }

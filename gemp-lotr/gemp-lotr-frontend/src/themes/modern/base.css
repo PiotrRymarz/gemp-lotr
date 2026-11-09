@@ -27,6 +27,7 @@
   --m-icon-convert: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M20 11a8 8 0 0 0-14.3-4.9L4 8M4 13a8 8 0 0 0 14.3 4.9L20 16'/><path d='M4 3v5h5M20 21v-5h-5'/></svg>");
   --m-icon-notes: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9z'/><path d='M15 3v6h6M7 13h10M7 17h6'/></svg>");
   --m-icon-zoom: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='7'/><path d='M20 20l-4-4M11 8v6M8 11h6'/></svg>");
+  --m-icon-settings: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='3'/><path d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z'/></svg>");
   --m-icon-previous: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M15 18l-6-6 6-6'/></svg>");
   --m-icon-next: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M9 18l6-6-6-6'/></svg>");
   --m-icon-close: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M18 6L6 18M6 6l12 12'/></svg>");
@@ -155,6 +156,9 @@ a:hover {
 }
 [data-action='auto-zoom'] {
   --m-icon: var(--m-icon-zoom);
+}
+[data-action='settings'] {
+  --m-icon: var(--m-icon-settings);
 }
 [data-action='open'] {
   --m-icon: var(--m-icon-open);
@@ -642,6 +646,52 @@ input[type='range']:disabled {
 .gd-notifier__input {
   width: 100%;
   margin-top: var(--m-space-3);
+}
+
+/* The settings: a label and its control per row */
+.gd-dialog[data-dialog='settings'] {
+  --m-dialog-width: 360px;
+  min-height: 0;
+  resize: none;
+}
+
+.gd-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-3);
+}
+
+.gd-settings__field {
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-3);
+  min-height: 32px;
+}
+
+.gd-settings__field[data-setting='theme'] {
+  justify-content: space-between;
+}
+
+.gd-settings select.gd-settings__control {
+  flex: 0 1 180px;
+}
+
+.gd-settings input.gd-settings__control {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--m-accent);
+}
+
+/* ---------------------------------------------------------------- the shell (header, menu) */
+
+/* No box of its own for now: the page lays itself out as before. The header is drawn in a later change */
+.gd-shell {
+  display: contents;
+}
+
+.gd-shell__header {
+  display: none;
 }
 
 /* ---------------------------------------------------------------- card information */

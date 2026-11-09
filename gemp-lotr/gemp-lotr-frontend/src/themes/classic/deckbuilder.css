@@ -560,6 +560,10 @@ button.gd-slot__label:focus-visible {
 .gd-button[data-action='auto-zoom']::before {
   background-position: -32px -192px;
 }
+/* ui-icon-gear */
+.gd-button[data-action='settings']::before {
+  background-position: -192px -112px;
+}
 .gd-button[data-action='auto-zoom'][aria-pressed='true']::before {
   background-position: -160px -112px;
 }
@@ -600,11 +604,12 @@ button.gd-slot__label:focus-visible {
   width: 100px;
 }
 
-/* Not on the legacy page: in the deck name's empty space, so the magnifier and the collection stay where they were */
-.gd-toolbar__theme {
+/*
+ * Not on the legacy page: the settings (the theme, ...), an icon button like the others, in the deck name's empty
+ * space, so the magnifier and the collection stay where they were
+ */
+.gd-toolbar .gd-button[data-action='settings'] {
   order: 1;
-  width: 72px;
-  margin-right: 2.35px;
 }
 
 .gd-toolbar .gd-button[data-action='auto-zoom'] {

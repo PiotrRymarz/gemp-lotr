@@ -14,7 +14,7 @@ export type ThemeName = (typeof THEMES)[number];
 export const THEME_PAGES = ['deckbuilder'] as const;
 export type ThemePage = (typeof THEME_PAGES)[number];
 
-/** Shown in the theme picker. */
+/** Shown in the theme picker (the settings dialog). */
 export const THEME_LABELS: Readonly<Record<ThemeName, string>> = { classic: 'Classic', modern: 'Modern' };
 
 /** Computers get the legacy look. */

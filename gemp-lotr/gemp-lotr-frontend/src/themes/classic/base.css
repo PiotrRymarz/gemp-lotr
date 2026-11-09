@@ -777,6 +777,54 @@ div {
   width: 100%;
 }
 
+/* The settings: a small jQuery UI dialog of labelled fields, like the deck builder's */
+.gd-dialog[data-dialog='settings'] {
+  --classic-dialog-width: 300px;
+  min-height: 0;
+  resize: none;
+}
+
+.gd-dialog[data-dialog='settings']:not([data-placed]) {
+  inset: 0;
+  margin: auto;
+}
+
+.gd-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5em;
+  margin: 0.5em 0;
+}
+
+.gd-settings__field {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+}
+
+.gd-settings__field[data-setting='theme'] .gd-settings__label {
+  width: 5em;
+}
+
+.gd-settings select.gd-settings__control {
+  flex: 1 1 auto;
+  height: 23px;
+  padding: 3px;
+  border: 1px solid #888;
+  border-color: #888 #666 #666 #888;
+  border-radius: 8px;
+  background-color: #222;
+  color: #fff;
+}
+
+.gd-settings select.gd-settings__control:hover {
+  background-color: #444;
+}
+
+.gd-settings input.gd-settings__control {
+  margin: 0;
+}
+
 /* .ui-dialog-buttonpane */
 .gd-dialog__actions {
   flex: none;
@@ -789,4 +837,19 @@ div {
 
 .gd-dialog__actions .gd-button {
   margin: 0.5em 0.4em 0.5em 0;
+}
+
+/* ---------------------------------------------------------------- the shell (header, menu) */
+
+/* No box of its own: a page lays itself out as a child of body, as the legacy pages did */
+.gd-shell {
+  display: contents;
+}
+
+/*
+ * The legacy deck builder had no shared header, so the classic deck builder has none; nor is it shown before the
+ * first page is known
+ */
+.gd-shell:is(:not([data-page]), [data-page='deckbuilder']) > .gd-shell__header {
+  display: none;
 }

@@ -122,6 +122,7 @@ function serverAnswer(url, request, scenario) {
   const p = url.pathname.replace('/gemp-lotr-server', '');
   const own = scenario.answers?.[p];
   if (own) return own;
+  if (p === '/player') return { file: 'player.json', type: 'application/json' };
   if (p === '/deck/formats') return { json: FORMATS };
   if (p === '/deck/list' || p === '/deck/libraryList') return { xml: DECKS_XML };
   if (p === '/deck/stats') return { file: 'stats.html', type: 'text/html' };
@@ -287,6 +288,13 @@ export const STUBBED_SCENARIOS = [
     name: 'delivery',
     answers: { '/delivery/packContents': { file: 'pack-delivery.xml' } },
     act: async () => {},
+  },
+  /* The settings dialog (the Angular page's toolbar button; the legacy page had none, so its side is as loaded) */
+  {
+    name: 'settings',
+    act: async (page, which) => {
+      if (which === 'angular') await page.click(CONTROLS.settings[which]);
+    },
   },
   /*
    * The legacy page asked with the browser's own dialogs, which a screenshot doesn't show (Playwright answers them);

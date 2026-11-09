@@ -7,8 +7,8 @@ import { DeckLibraryService } from '../../../core/deck/deck-library.service';
 import { DeckService } from '../../../core/deck/deck.service';
 import { AutoZoomSetting } from '../../../core/platform/auto-zoom-setting';
 import { PAGE_QUERY_STRING } from '../../../core/platform/page-location';
-import { ThemeService } from '../../../core/platform/theme.service';
 import { provideFakeNotifier } from '../../../testing/fake-notifier';
+import { SettingsService } from '../../shell/settings.service';
 import { DeckToolbarComponent } from './deck-toolbar.component';
 
 describe('DeckToolbarComponent', () => {
@@ -39,7 +39,7 @@ describe('DeckToolbarComponent', () => {
     return { fixture, el, button };
   }
 
-  it('has the deck buttons, the format, the notes, the name, the zoom, the collection and the theme (DOM contract)', async () => {
+  it('has the deck buttons, the format, the notes, the name, the zoom, the collection and the settings (DOM contract)', async () => {
     const { el } = await render();
     expect(el.classList).toContain('gd-toolbar');
     expect(el.getAttribute('role')).toBe('toolbar');
@@ -65,11 +65,11 @@ describe('DeckToolbarComponent', () => {
       'gd-toolbar__deck-name',
       'gd-button',
       'gd-toolbar__collection',
-      'gd-toolbar__theme',
+      'gd-button',
     ]);
     expect(el.querySelector('.gd-toolbar__deck-name')!.textContent).toBe('New deck');
-    const theme = el.querySelector<HTMLSelectElement>('select.gd-toolbar__theme')!;
-    expect(Array.from(theme.options).map((o) => o.value)).toEqual(['classic', 'modern']);
+    expect((el.lastElementChild as HTMLElement).dataset['action']).toBe('settings');
+    expect(el.querySelector('select.gd-toolbar__theme')).toBeNull();
   });
 
   it('runs the deck actions', async () => {
@@ -128,7 +128,7 @@ describe('DeckToolbarComponent', () => {
     expect(el.querySelector('[data-action="auto-zoom"]')).toBeNull();
   });
 
-  it('selects the format, the collection and the theme', async () => {
+  it('selects the format and the collection', async () => {
     const { el } = await render();
     const selectFormat = vi.spyOn(deck, 'selectFormat');
     const format = el.querySelector<HTMLSelectElement>('.gd-toolbar__format')!;
@@ -141,11 +141,13 @@ describe('DeckToolbarComponent', () => {
     collection.value = collection.options[1].value;
     collection.dispatchEvent(new Event('change'));
     expect(selectCollection).toHaveBeenCalledWith(collection.options[1].value);
+  });
 
-    const select = vi.spyOn(TestBed.inject(ThemeService), 'select').mockResolvedValue();
-    const theme = el.querySelector<HTMLSelectElement>('.gd-toolbar__theme')!;
-    theme.value = 'modern';
-    theme.dispatchEvent(new Event('change'));
-    expect(select).toHaveBeenCalledWith('modern');
+  it('opens the settings', async () => {
+    const { button } = await render();
+    const settings = TestBed.inject(SettingsService);
+    expect(button('settings').getAttribute('aria-haspopup')).toBe('dialog');
+    button('settings').click();
+    expect(settings.isOpen()).toBe(true);
   });
 });
