@@ -127,13 +127,15 @@ for (const page of pages) {
         const tab = await context.newPage();
         tab.on('pageerror', (error) => log.push(`page error: ${error.message}`));
         const file = path.join(outDir, `${page.prefix ?? `${page.name}-`}${scenario.name}-${size.label}-${which}.png`);
+        // A page that polls the server (`polls`) never goes idle: a fixed wait instead
+        const wait = page.polls ? (t) => t.waitForTimeout(1500) : settle;
         try {
           await tab.goto(ORIGIN + address);
-          await settle(tab);
+          await wait(tab);
           if (which === 'angular' || !scenario.angularOnly) await scenario.act(tab, which);
           // A scenario with a request left unanswered (`pending`) never goes idle: a short wait instead
           if (scenario.pending) await tab.waitForTimeout(400);
-          else await settle(tab);
+          else await wait(tab);
           await tab.screenshot({ path: file });
           shots++;
           console.log(`${file}${log.length ? `\n  ${[...new Set(log)].join('\n  ')}` : ''}`);

@@ -14,7 +14,7 @@ const PICTURE: DraftChoice = { id: 'fp-elven', blueprintId: null, url: 'https://
   template: `<gd-draft-picks [choices]="choices()" />`,
 })
 class Host {
-  readonly choices = signal<readonly DraftChoice[]>([CARD('1_2'), CARD('1_319'), PICTURE]);
+  readonly choices = signal<readonly (DraftChoice & { chosen?: boolean })[]>([CARD('1_2'), CARD('1_319'), PICTURE]);
 }
 
 describe('DraftPicksComponent', () => {
@@ -62,6 +62,18 @@ describe('DraftPicksComponent', () => {
     cards()[1].dispatchEvent(new MouseEvent('click', { shiftKey: true, bubbles: true }));
     cards()[2].dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }));
     expect(used).toEqual(['activate draftChoice 1_2', 'info draftChoice 1_319', 'info draftChoice rules']);
+  });
+
+  it('marks the cards declared for the pick (table draft), every copy', async () => {
+    const { fixture, cards } = await render();
+    expect(cards().map((c) => c.dataset['chosen'])).toEqual([undefined, undefined, undefined]);
+    fixture.componentInstance.choices.set([
+      { ...CARD('1_2'), chosen: true },
+      { ...CARD('1_319'), chosen: false },
+      { ...CARD('1_2'), chosen: true },
+    ]);
+    await fixture.whenStable();
+    expect(cards().map((c) => c.dataset['chosen'])).toEqual(['', undefined, '']);
   });
 
   it('shows the picks of the moment (none while a pick is under way)', async () => {

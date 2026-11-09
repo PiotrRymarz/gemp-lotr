@@ -1,0 +1,204 @@
+/*
+ * The modern theme's table draft, built into theme-modern-table-draft.css: ThemeService loads it after the theme's
+ * base (base.css, with the tokens), on the table draft page only.
+ *
+ * A placeholder until the page gets its modern design: the line, the table and the pack above; the drafted cards
+ * and the chat column below, each in a panel whose cards fit it (fitCards), below the shell's header. Phones (under
+ * 768px) show one pane at a time, chosen in the tab bar at the bottom.
+ */
+
+.gd-table-draft .gd-card > .gd-card__info {
+  display: none;
+}
+
+.gd-table-draft {
+  position: fixed;
+  inset: var(--m-shell-top) 0 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-rows: clamp(200px, var(--gd-picks-height, 36%), calc(100% - 120px)) 8px minmax(0, 1fr);
+  grid-template-areas: 'picks picks' 'separator separator' 'chat drafted';
+  gap: var(--m-space-2);
+  padding: var(--m-space-3);
+  box-sizing: border-box;
+  background: var(--m-bg);
+  color: var(--m-text);
+  font-family: var(--m-font);
+  font-size: var(--m-font-size);
+}
+
+.gd-table-draft[data-picks='closed'] {
+  grid-template-rows: 0 8px minmax(0, 1fr);
+}
+
+.gd-table-draft__picks,
+.gd-table-draft__drafted,
+.gd-table-draft__chat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-2);
+  min-height: 0;
+  padding: var(--m-space-3);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+}
+
+.gd-table-draft__picks {
+  grid-area: picks;
+}
+
+.gd-table-draft__drafted {
+  grid-area: drafted;
+}
+
+.gd-table-draft__chat {
+  grid-area: chat;
+}
+
+.gd-table-draft__message,
+.gd-table-draft__heading {
+  margin: 0;
+  font-size: var(--m-font-size);
+  font-weight: 600;
+}
+
+.gd-table-draft__message:empty {
+  display: none;
+}
+
+.gd-table-draft__count {
+  color: var(--m-text-muted);
+  font-weight: 400;
+}
+
+.gd-table-draft__notices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--m-space-2) var(--m-space-3);
+  color: var(--m-danger);
+}
+
+.gd-table-draft__notice {
+  margin: 0;
+}
+
+.gd-table-draft__seats {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--m-text-muted);
+}
+
+.gd-table-draft__seat[data-chosen] > .gd-table-draft__name {
+  color: var(--m-success, var(--m-accent));
+  font-weight: 600;
+}
+
+.gd-table-draft__pass {
+  white-space: pre;
+}
+
+.gd-table-draft__separator {
+  grid-area: separator;
+  position: relative;
+  border-radius: var(--m-radius-pill);
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.gd-table-draft__toggle {
+  position: absolute;
+  left: calc(50% - 24px);
+  top: 2px;
+  width: 48px;
+  height: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-border-strong);
+  cursor: pointer;
+}
+
+.gd-draft-picks,
+.gd-drafted-pool {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.gd-draft-picks__cards,
+.gd-drafted-pool__cards {
+  --gd-card-max-height: 220px;
+  --gd-card-gap: 8px;
+  --gd-card-fit: contain;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+.gd-draft-picks .gd-card[data-chosen] {
+  outline: 3px solid var(--m-accent);
+  outline-offset: 2px;
+}
+
+.gd-drafted-pool__empty {
+  margin: 0;
+  color: var(--m-text-muted);
+}
+
+.gd-table-draft .gd-page__tabs {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .gd-table-draft {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas: 'pane' 'tabs';
+  }
+
+  .gd-table-draft__separator {
+    display: none;
+  }
+
+  .gd-table-draft__picks,
+  .gd-table-draft__drafted,
+  .gd-table-draft__chat {
+    grid-area: pane;
+  }
+
+  .gd-table-draft:not([data-pane='picks']) .gd-table-draft__picks,
+  .gd-table-draft:not([data-pane='drafted']) .gd-table-draft__drafted,
+  .gd-table-draft:not([data-pane='chat']) .gd-table-draft__chat {
+    display: none;
+  }
+
+  .gd-table-draft .gd-page__tabs {
+    grid-area: tabs;
+    display: flex;
+    gap: var(--m-space-2);
+  }
+
+  .gd-table-draft .gd-page__tab {
+    flex: 1 1 0;
+    min-height: 44px;
+    border: 1px solid var(--m-border);
+    border-radius: var(--m-radius-sm);
+    background: var(--m-surface-2);
+    color: var(--m-text);
+    font: inherit;
+  }
+
+  .gd-table-draft .gd-page__tab[aria-selected='true'] {
+    border-color: var(--m-accent);
+    background: var(--m-accent-soft);
+  }
+}

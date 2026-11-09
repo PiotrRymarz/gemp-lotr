@@ -3,6 +3,7 @@ import { DECKBUILDER_SERVICES } from '../../core/actions/deckbuilder-services';
 import { LOGIN_SERVICES } from '../../core/login/login-services';
 import { MERCHANT_SERVICES } from '../../core/merchant/merchant-services';
 import { SOLO_DRAFT_SERVICES } from '../../core/solo-draft/solo-draft-services';
+import { TABLE_DRAFT_SERVICES } from '../../core/table-draft/table-draft-services';
 import { MERCHANT_VIEW_PROVIDERS } from '../merchant/merchant-notifier';
 import { loadThemePage } from './theme-pages';
 
@@ -46,6 +47,15 @@ export const APP_ROUTES: Routes = [
     resolve: { themePage: loadThemePage },
     providers: SOLO_DRAFT_SERVICES,
     loadComponent: () => import('../solo-draft/solo-draft-page.component').then((m) => m.SoloDraftPageComponent),
+  },
+  {
+    // Opened from the hall with ?eventId= (a table draft tournament); no shell link
+    path: 'draft/table',
+    title: 'GEMP: LotR-TCG - Draft',
+    data: { page: 'table-draft' },
+    resolve: { themePage: loadThemePage },
+    providers: TABLE_DRAFT_SERVICES,
+    loadComponent: () => import('../table-draft/table-draft-page.component').then((m) => m.TableDraftPageComponent),
   },
   { path: '', pathMatch: 'full', redirectTo: 'deckbuilder' },
   { path: '**', redirectTo: 'deckbuilder' },

@@ -2,11 +2,11 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { GENERIC_COMMUNICATION_ERROR } from '../../core/api/api-error';
 import { SoloDraftService, SoloDraftStatus } from '../../core/solo-draft/solo-draft.service';
 import { DraftPicksComponent } from '../draft/draft-picks.component';
+import { DraftPaneResizer } from '../draft/draft-pane-resizer';
 import { DraftedPoolComponent } from '../draft/drafted-pool.component';
 import { CardInfoComponent } from '../shared/card-info/card-info.component';
 
-/** Arrow keys on the separator move it by this much (px). */
-export const RESIZE_STEP = 10;
+export { RESIZE_STEP } from '../draft/draft-pane-resizer';
 
 /** The pane a theme that shows one pane at a time (phones) shows: the tab bar's choice. */
 export type SoloDraftPane = 'picks' | 'drafted';
@@ -114,10 +114,15 @@ export class SoloDraftPageComponent {
   protected readonly state = computed(() => STATES[this.draft.status()]);
   /** The pane chosen in the tab bar, for themes that show one pane at a time. */
   protected readonly pane = signal<SoloDraftPane>('picks');
-  protected readonly picksOpen = signal(true);
+  protected readonly resizer = new DraftPaneResizer({
+    page: '.gd-solo-draft',
+    picks: '.gd-solo-draft__picks',
+    toggle: '.gd-solo-draft__toggle',
+  });
+  protected readonly picksOpen = this.resizer.picksOpen;
   /** The picks' height as last dragged to, or null for the theme's default. */
-  protected readonly picksHeight = signal<number | null>(null);
-  protected readonly dragging = signal(false);
+  protected readonly picksHeight = this.resizer.picksHeight;
+  protected readonly dragging = this.resizer.dragging;
 
   constructor() {
     void this.draft.load();
@@ -136,57 +141,14 @@ export class SoloDraftPageComponent {
   }
 
   protected togglePicks(): void {
-    this.picksOpen.update((open) => !open);
+    this.resizer.toggle();
   }
 
-  /** Dragging the separator: the picks' bottom edge follows the pointer. */
   protected startResize(event: PointerEvent): void {
-    if (!this.picksOpen() || event.button !== 0 || (event.target as Element).closest('.gd-solo-draft__toggle')) {
-      return;
-    }
-    event.preventDefault();
-    const separator = event.currentTarget as HTMLElement;
-    const page = separator.closest('.gd-solo-draft') as HTMLElement;
-    separator.setPointerCapture?.(event.pointerId);
-    this.dragging.set(true);
-    const move = (e: PointerEvent) => {
-      const top = page.getBoundingClientRect().top;
-      this.picksHeight.set(Math.round(e.clientY - top - separator.offsetHeight / 2));
-    };
-    const stop = () => {
-      separator.removeEventListener('pointermove', move);
-      separator.removeEventListener('pointerup', stop);
-      separator.removeEventListener('pointercancel', stop);
-      this.dragging.set(false);
-      // Keep what the theme allowed, so the next drag or key press starts from what is shown
-      const shown = page.querySelector<HTMLElement>('.gd-solo-draft__picks')?.getBoundingClientRect().height;
-      if (shown) {
-        this.picksHeight.set(Math.round(shown));
-      }
-    };
-    separator.addEventListener('pointermove', move);
-    separator.addEventListener('pointerup', stop);
-    separator.addEventListener('pointercancel', stop);
+    this.resizer.startResize(event);
   }
 
-  /** Down makes the picks taller, Up shorter; Enter closes or opens them. */
   protected resizeWithKeys(event: KeyboardEvent): void {
-    if (event.target !== event.currentTarget) {
-      return;
-    }
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      this.togglePicks();
-      return;
-    }
-    const step = event.key === 'ArrowDown' ? RESIZE_STEP : event.key === 'ArrowUp' ? -RESIZE_STEP : 0;
-    if (step && this.picksOpen()) {
-      event.preventDefault();
-      const picks = (event.currentTarget as HTMLElement)
-        .closest('.gd-solo-draft')
-        ?.querySelector<HTMLElement>('.gd-solo-draft__picks');
-      const current = this.picksHeight() ?? picks?.getBoundingClientRect().height ?? 0;
-      this.picksHeight.set(Math.round(current + step));
-    }
+    this.resizer.resizeWithKeys(event);
   }
 }

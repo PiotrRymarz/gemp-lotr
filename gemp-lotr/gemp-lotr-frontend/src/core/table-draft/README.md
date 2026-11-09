@@ -66,4 +66,7 @@ Ported from `gemp-lotr-async/src/main/web/tableDraft.html`, `src/TableDraft/tabl
 ## Gaps
 
 - Chat: no chat core exists yet; the view (or a later shared chat chunk) needs the "Draft-{eventId}" room, its player
-  list and the server message dialogs.
+  list and the server message dialogs. The page (`ui/table-draft`) has the chat's place, an empty
+  `section.gd-table-draft__chat`, and a Chat tab for phones. The legacy chat box never showed: game.css hides
+  `#bottomLeftTabs` until gameUi shows it, which the table draft page never did, so its warnings were not seen either;
+  the page shows them (`notices`) in the message's place.

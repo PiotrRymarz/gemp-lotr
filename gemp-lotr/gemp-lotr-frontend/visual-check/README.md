@@ -141,6 +141,21 @@ shows the app's card information (the legacy solo draft had a plainer dialog of 
 the legacy page only alerted (not in a screenshot); the Angular page says why in the message line, and in `error` also
 shows the notifier's dialog.
 
+### Table draft scenarios
+
+`/gemp-lotr/tableDraft.html?eventId=VCHECK` against `/gemp-lotr/ng/draft/table?eventId=VCHECK` (in
+`pages/table-draft.mjs`: four seats, a timed pick of the first pack (seven cards, a foil and a site among them), a
+drafted pool of fourteen copies; declaring a card marks it and the player's seat; the legacy chat's room answers
+empty). Both pages poll every 500 ms, so the page module sets `polls` and `stubbed.mjs` waits a fixed 1.5 s instead
+of for the network to go idle. Scenarios: `picking`, `declared` (the first card clicked), `waiting` (answered as
+declared from the start), `pass-up` (packs passing up the table, no timer, pack 2/3), `card-info` (shift-click on a
+drafted card), `finished`, `no-event` (both pages opened without `?eventId=`) and `lost` (GET `/tableDraft/VCHECK`
+answers 500). In classic, all but three match the legacy page exactly. The legacy chat box never shows (game.css hides
+`#bottomLeftTabs` until gameUi shows it, which this page doesn't); the Angular page leaves the chat's place empty for
+now. In `card-info` the Angular page shows the app's card information. In `lost` and `no-event` (the legacy page
+polled `/tableDraft/null`) the legacy page wrote its warnings in that hidden chat; the Angular page shows them in red
+in the message's place, with "Try again" (`lost`), or says there is no draft (`no-event`).
+
 ### Adding a page
 
 Add `pages/<name>.mjs` and list it in `pages/index.mjs`. It exports by default:
@@ -157,6 +172,7 @@ export default {
     return null; // 404, logged as unanswered
   },
   skip: (scenario, mode) => false, // optional: a reason to skip (mode: { theme, touch, width, height })
+  polls: false, // optional: the pages poll the server, so wait a fixed 1.5 s rather than for the network to idle
   scenarios: [
     { name: 'loaded', act: async () => {} },
     {

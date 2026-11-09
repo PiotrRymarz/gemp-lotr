@@ -13,6 +13,8 @@ import { MerchantNotifier } from '../merchant/merchant-notifier';
 import { MerchantService } from '../../core/merchant/merchant.service';
 import { SoloDraftService } from '../../core/solo-draft/solo-draft.service';
 import { SoloDraftPageComponent } from '../solo-draft/solo-draft-page.component';
+import { TableDraftService } from '../../core/table-draft/table-draft.service';
+import { TableDraftPageComponent } from '../table-draft/table-draft-page.component';
 import { AppComponent } from './app.component';
 import { APP_ROUTES } from './app.routes';
 
@@ -76,6 +78,18 @@ describe('app routes', () => {
     expect(harness.routeNativeElement!.dataset['state']).toBe('no-event');
     expect(TestBed.inject(HttpTestingController).match(() => true)).toEqual([]);
     expect(() => TestBed.inject(SoloDraftService)).toThrow();
+  });
+
+  it('loads the table draft at draft/table (no shell link: the hall opens it), with its own TableDraftService', async () => {
+    const { page, url } = await open('/draft/table?eventId=tdraft-1');
+    expect(page).toBeInstanceOf(TableDraftPageComponent);
+    expect(url).toBe('/draft/table?eventId=tdraft-1');
+    expect(harness.routeNativeElement!.classList).toContain('gd-table-draft');
+    expect(TestBed.inject(Router).routerState.snapshot.root.firstChild!.title).toBe('GEMP: LotR-TCG - Draft');
+    // The event comes from the page's own query string (PAGE_QUERY_STRING, empty here): nothing is asked
+    expect(harness.routeNativeElement!.dataset['state']).toBe('no-event');
+    expect(TestBed.inject(HttpTestingController).match(() => true)).toEqual([]);
+    expect(() => TestBed.inject(TableDraftService)).toThrow();
   });
 
   it('keeps the query string (?theme=, ?participantId=)', async () => {

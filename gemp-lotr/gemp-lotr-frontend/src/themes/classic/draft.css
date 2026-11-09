@@ -1,0 +1,69 @@
+/*
+ * The classic theme's draft cards, shared by the solo and the table draft (imported by solo-draft.css and
+ * table-draft.css, so it is in each page's bundle): the picks on offer (gd-draft-picks) and the drafted cards
+ * (gd-drafted-pool) as the legacy NormalCardGroup drew them, each in a jQuery UI "dark-hive" content box, cards at
+ * most 200px high. Each page places the two boxes.
+ */
+
+/* ---------------------------------------------------------------- the card groups (NormalCardGroup) */
+
+/* Each page sets the inset (its legacy layoutUI's places) */
+.gd-draft-picks,
+.gd-drafted-pool {
+  position: absolute;
+}
+
+/* The group's box: a jQuery UI content box 2px larger than its place (the border outside the legacy width) */
+.gd-draft-picks::before,
+.gd-drafted-pool::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border: 1px solid #555;
+  border-radius: 7px;
+  background: var(--classic-content-bg);
+}
+
+/* The cards keep 3px inside the place (CardGroup.setBounds), in the legacy rows of at most 200px */
+.gd-draft-picks__cards,
+.gd-drafted-pool__cards {
+  --gd-card-max-height: 200px;
+  --gd-card-gap: 5px;
+  --gd-card-fit: rows;
+  position: absolute;
+  inset: 3px;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  align-items: flex-start;
+  gap: var(--gd-card-gap);
+}
+
+/* Rows the row height apart, as the legacy group placed them (whole pixels), centred in the box */
+.gd-draft-picks .gd-card,
+.gd-drafted-pool .gd-card {
+  top: var(--gd-card-offset, 0px);
+  flex: none;
+  margin-bottom: calc(round(down, var(--gd-card-height, 200px), 1px) - var(--card-h));
+  --card-h: round(down, calc(var(--gd-card-width) * 490 / 350), 1px);
+}
+
+/* A landscape card is a whole number of pixels wide (Card.getWidthForMaxDimension), whatever the row height */
+.gd-draft-picks .gd-card[data-orientation='horizontal'],
+.gd-drafted-pool .gd-card[data-orientation='horizontal'] {
+  --gd-card-width: round(down, var(--gd-card-height, 200px), 1px);
+  --card-h: round(down, calc(var(--gd-card-width) * 350 / 490), 1px);
+}
+
+/* autozoom.css, which rounded the cards, wasn't on the legacy draft pages */
+.gd-draft-picks .gd-card,
+.gd-draft-picks .gd-card > *,
+.gd-draft-picks .gd-card::after,
+.gd-drafted-pool .gd-card,
+.gd-drafted-pool .gd-card > *,
+.gd-drafted-pool .gd-card::after {
+  border-radius: 0;
+}

@@ -11,7 +11,8 @@ import { injectDraftCardsOptions } from './draft-cards-options';
  * `draftChoice`). A pick shown by a picture is that picture, without a card border.
  *
  * DOM contract: `.gd-draft-picks` (`data-count` = picks on offer) holding `.gd-draft-picks__cards` (the fitCards box)
- * with a `button.gd-card` per pick (`data-choice` = its id; `data-picture` for a pick shown by a picture).
+ * with a `button.gd-card` per pick (`data-choice` = its id; `data-picture` for a pick shown by a picture; `data-chosen`
+ * for the card declared for the pick, table draft only: every copy of it).
  */
 @Component({
   selector: 'gd-draft-picks',
@@ -24,13 +25,15 @@ import { injectDraftCardsOptions } from './draft-cards-options';
           [gdCard]="view"
           [attr.data-choice]="choices()[$index].id"
           [attr.data-picture]="choices()[$index].blueprintId === null ? '' : null"
+          [attr.data-chosen]="choices()[$index].chosen ? '' : null"
         ></button>
       }
     </div>
   `,
 })
 export class DraftPicksComponent {
-  readonly choices = input.required<readonly DraftChoice[]>();
+  /** The picks on offer; `chosen` marks the card declared for the pick (table draft). */
+  readonly choices = input.required<readonly (DraftChoice & { chosen?: boolean })[]>();
 
   private readonly options = injectDraftCardsOptions();
   protected readonly views = computed(() => choiceViews(this.choices(), this.options));

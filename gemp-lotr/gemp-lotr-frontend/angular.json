@@ -51,6 +51,11 @@
                 "inject": false
               },
               {
+                "input": "src/themes/classic/table-draft.css",
+                "bundleName": "theme-classic-table-draft",
+                "inject": false
+              },
+              {
                 "input": "src/themes/modern/base.css",
                 "bundleName": "theme-modern",
                 "inject": false
@@ -73,6 +78,11 @@
               {
                 "input": "src/themes/modern/solo-draft.css",
                 "bundleName": "theme-modern-solo-draft",
+                "inject": false
+              },
+              {
+                "input": "src/themes/modern/table-draft.css",
+                "bundleName": "theme-modern-table-draft",
                 "inject": false
               }
             ],

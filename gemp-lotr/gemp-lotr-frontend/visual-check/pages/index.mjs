@@ -3,5 +3,6 @@ import deckbuilder from './deckbuilder.mjs';
 import login from './login.mjs';
 import merchant from './merchant.mjs';
 import soloDraft from './solo-draft.mjs';
+import tableDraft from './table-draft.mjs';
 
-export const PAGES = [deckbuilder, login, merchant, soloDraft];
+export const PAGES = [deckbuilder, login, merchant, soloDraft, tableDraft];

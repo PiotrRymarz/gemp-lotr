@@ -1,0 +1,199 @@
+/*
+ * The classic theme's table draft, built into theme-classic-table-draft.css: ThemeService loads it after the theme's
+ * base (base.css), on the table draft page only. The legacy tableDraft.html: the solo draft's jquery.layout frame
+ * (default styles, panes painted black, a north pane at its 30% minimum of the window less the 6px resizer) holding
+ * the line above the pack (deckBuild.css #messageDiv), the table (index.css #tableStatusDiv) and the pack, and a centre
+ * pane holding the chat box at its bottom left and the drafted cards right of it. The card groups are the solo draft's
+ * (draft.css). Places come from tableDraftUi.layoutUI: 5px in from the pane's padding box, 40px for the message and
+ * 20px for the table above the pack, a 200px chat column, and the pane's 10px padding counted twice on the right and
+ * bottom.
+ */
+
+@import './draft.css';
+
+/* The legacy page had no shared header, no heading over the drafted cards, no tab bar and no ⓘ spot on the cards */
+.gd-shell[data-page='table-draft'] > .gd-shell__header,
+.gd-table-draft .gd-card > .gd-card__info,
+.gd-table-draft__heading,
+.gd-drafted-pool__empty,
+.gd-table-draft .gd-page__tabs {
+  display: none;
+}
+
+/* ---------------------------------------------------------------- page frame (jquery.layout) */
+
+.gd-table-draft {
+  --picks-min: round(down, calc((100vh - 6px) * 0.3), 1px);
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: clamp(var(--picks-min), var(--gd-picks-height, 0px), calc(100vh - 6px - 60px)) 6px minmax(0, 1fr);
+  grid-template-areas: 'picks' 'separator' 'drafted';
+  background: #000;
+  font-family: 'Times New Roman', serif;
+  overflow: hidden;
+}
+
+.gd-table-draft[data-picks='closed'] {
+  grid-template-rows: 0 6px minmax(0, 1fr);
+}
+
+/* The panes: 1px #BBB borders (applyDefaultStyles), black */
+.gd-table-draft__picks,
+.gd-table-draft__drafted {
+  position: relative;
+  min-height: 0;
+  box-sizing: border-box;
+  border: 1px solid #bbb;
+  background: #000;
+}
+
+.gd-table-draft__picks {
+  grid-area: picks;
+  /* The pane clipped its contents (the declared card's glow) at its border */
+  overflow: hidden;
+}
+
+.gd-table-draft__drafted {
+  grid-area: drafted;
+}
+
+/* The resizer: 6px of #DDD across, its 50px #AAA toggler in the middle */
+.gd-table-draft__separator {
+  grid-area: separator;
+  position: relative;
+  background: #ddd;
+  cursor: row-resize;
+  touch-action: none;
+}
+
+.gd-table-draft[data-picks='closed'] .gd-table-draft__separator {
+  cursor: default;
+}
+
+.gd-table-draft__separator:focus-visible {
+  outline: 2px solid #0b93d5;
+  outline-offset: -2px;
+}
+
+.gd-table-draft__toggle {
+  position: absolute;
+  left: calc(50% - 25px);
+  top: 0;
+  width: 50px;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  background: #aaa;
+  cursor: pointer;
+}
+
+.gd-table-draft__toggle:hover {
+  background: #888;
+}
+
+/* ---------------------------------------------------------------- the message (#messageDiv) */
+
+.gd-table-draft__message {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  margin: 0;
+  color: #fff;
+  font-size: 21.6px;
+  text-align: center;
+}
+
+.gd-table-draft__message:empty {
+  display: none;
+}
+
+/*
+ * Not seen on the legacy page (its chat, where it wrote them, stayed hidden): the warnings once a call failed, in red
+ * as its chat warnings, in the message's place, with a way to start again
+ */
+.gd-table-draft__notices {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 4px;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  column-gap: 10px;
+  color: #ff0000;
+  font-size: 14.4px;
+  text-align: center;
+}
+
+.gd-table-draft__notice {
+  margin: 0;
+}
+
+.gd-table-draft__retry {
+  font-family: var(--classic-widget-font);
+}
+
+/* ---------------------------------------------------------------- the table (#tableStatusDiv) */
+
+.gd-table-draft__seats {
+  position: absolute;
+  left: 5px;
+  right: 25px;
+  top: 45px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: #fff;
+  font-size: 14.4px;
+  text-align: center;
+}
+
+.gd-table-draft__seat {
+  display: inline;
+}
+
+.gd-table-draft__seat[data-chosen] > .gd-table-draft__name {
+  color: #a8dba8;
+}
+
+/* ---------------------------------------------------------------- the card groups' places (tableDraftUi.layoutUI) */
+
+/* 5px in, 70px down for the message and the table, 25px off the right and 20px off the bottom */
+.gd-draft-picks {
+  inset: 70px 25px 20px 5px;
+}
+
+/* Right of the 200px chat column (and 5px), 20px off the right and 25px off the bottom */
+.gd-drafted-pool {
+  inset: 5px 20px 25px 210px;
+}
+
+/* The declared card (index.css .draft-highlight): a 2px red border round it, glowing; the card moved by the border */
+.gd-draft-picks .gd-card[data-chosen] {
+  translate: 2px 2px;
+  outline: 2px solid #f00;
+  outline-offset: 0;
+  box-shadow: 0 0 10px 2px rgba(255, 0, 0, 0.5);
+}
+
+/* ---------------------------------------------------------------- the chat (#sideDiv's tab box) */
+
+/*
+ * The chat's place: 195px square at the bottom of the 200px column, 5px in. Empty until the chat is wired in; the
+ * legacy box stayed invisible too (game.css hides #bottomLeftTabs until gameUi shows it, which this page never did).
+ */
+.gd-table-draft__chat {
+  grid-area: drafted;
+  align-self: end;
+  justify-self: start;
+  position: relative;
+  width: 195px;
+  height: 195px;
+  margin: 0 0 26px 6px;
+  box-sizing: border-box;
+}
