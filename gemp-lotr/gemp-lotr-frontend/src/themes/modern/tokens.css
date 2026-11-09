@@ -1,6 +1,6 @@
 /*
  * The modern theme's design tokens, shared by every page (imported by base.css): the type, spacing, radii, the light
- * and dark palettes, shadows, the touch target size and the safe-area insets.
+ * and dark palettes, shadows, the touch target size, the safe-area insets and the shell's header height.
  */
 
 :root {
@@ -23,6 +23,8 @@
   --m-radius-pill: 999px;
 
   --m-control-height: 32px;
+  /* The shell's header bar (without the top safe-area inset; --m-shell-top adds it) */
+  --m-shell-height: 48px;
   --m-transition: 140ms cubic-bezier(0.2, 0.7, 0.3, 1);
 
   /* Dark palette (the default) */
@@ -89,6 +91,7 @@
 @media (pointer: coarse) {
   :root {
     --m-control-height: 44px;
+    --m-shell-height: 56px;
   }
 }
 
@@ -98,4 +101,6 @@
   --m-safe-right: env(safe-area-inset-right);
   --m-safe-bottom: env(safe-area-inset-bottom);
   --m-safe-left: env(safe-area-inset-left);
+  /* Where a page starts: below the shell's header, which keeps clear of the notch */
+  --m-shell-top: calc(var(--m-shell-height) + var(--m-safe-top));
 }
