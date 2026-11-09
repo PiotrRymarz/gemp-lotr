@@ -1,5 +1,6 @@
 import { CollectionItem } from '../api/models';
 import { DeckCard, DeckSlot, DrawCopy } from '../deck/deck-model';
+import { DraftChoice } from '../draft/draft-models';
 import { MerchantItem } from '../merchant/merchant-models';
 
 /**
@@ -20,7 +21,11 @@ export type CardRef =
   /** A card that is only shown (opened-pack contents, selection pack choices); `role` is its class, if any. */
   | { kind: 'shown'; blueprintId: string; zone: string; role: string }
   /** An item the merchant trades or the player owns (merchant page). */
-  | { kind: 'merchant'; blueprintId: string; item: MerchantItem };
+  | { kind: 'merchant'; blueprintId: string; item: MerchantItem }
+  /** A pick on offer (solo and table draft); `blueprintId` is "rules" for a pick shown by its picture. */
+  | { kind: 'draftChoice'; blueprintId: string; choice: DraftChoice }
+  /** A copy of a drafted card (solo and table draft). */
+  | { kind: 'drafted'; blueprintId: string };
 
 /** The zone the legacy page created the card with (it decides e.g. whether a site is drawn landscape). */
 export function zoneOf(ref: CardRef): string | null {
@@ -39,5 +44,10 @@ export function zoneOf(ref: CardRef): string | null {
     case 'merchant':
       // merchantUi.js: new Card(blueprintId, "merchant", "collection", "player"), so the zone is "player"
       return ref.item.kind === 'pack' ? 'pack' : 'player';
+    case 'draftChoice':
+      // soloDraftUi.js: new Card(blueprintId, null, null, "picks", "deck", "player")
+      return 'picks';
+    case 'drafted':
+      return 'drafted';
   }
 }

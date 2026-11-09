@@ -17,3 +17,11 @@
   `buyPrice` only for owned items, `tradeFoil="true"` for 4+ non-foil copies), `merchant-ok.txt` (the body of a
   successful POST /merchant/buy, /sell or /tradeFoil) and `merchant-error.xml` (what those calls answer, still with
   status 200, when the operation fails: `marshalException`).
+- Written by hand from the server code, for the solo draft (a fresh database has no solo draft league or tournament):
+  `solo-draft-picks.xml`, `solo-draft-picture-picks.xml` and `solo-draft-finished.xml` (GET /soloDraft/{eventId},
+  SoloDraftRequestHandler.getAvailablePicks: `<availablePicks>` with one `<availablePick id [blueprintId] [url]>` per
+  choice, none once finished; card choices use the blueprint as id, picture choices (singleCollectionPick) have only
+  a `url`, made up here), `solo-draft-pick-result.xml` and `solo-draft-last-pick-result.xml` (POST /soloDraft/{eventId},
+  makePick: `<pickResult>` with the `<pickedCard blueprintId count>` given and, unless it was the last pick, the next
+  `<availablePick>`s) and `solo-draft-collection.xml` (GET /collection/{eventId}, the drafted cards, as
+  CollectionRequestHandler.getCollection writes them).
