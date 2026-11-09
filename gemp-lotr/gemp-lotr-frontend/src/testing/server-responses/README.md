@@ -25,3 +25,10 @@
   makePick: `<pickResult>` with the `<pickedCard blueprintId count>` given and, unless it was the last pick, the next
   `<availablePick>`s) and `solo-draft-collection.xml` (GET /collection/{eventId}, the drafted cards, as
   CollectionRequestHandler.getCollection writes them).
+- Written by hand from the server code, for the table draft (a fresh database has no table draft tournament):
+  `table-draft-status.xml`, `table-draft-chosen.xml`, `table-draft-next-pick.xml` and `table-draft-finished.xml`
+  (GET and POST /tableDraft/{eventId}, TableDraftRequestHandler writing TableDraftClassic.getDocument: `<draftStatus>`
+  with a `<player name hasChosen>` per seat in table order, `<pickOrderAscending value>`, the drafted pool as
+  `<pickedCard blueprintId count>`s sorted by the server, the pack on offer as `<availablePick id blueprintId
+[chosen="true"]>` (the same card may be on offer twice), `<timeRemaining value>` (seconds) only for a timed draft,
+  and `<roundsInfo currentRound roundsTotal>`). Players and cards are made up.
