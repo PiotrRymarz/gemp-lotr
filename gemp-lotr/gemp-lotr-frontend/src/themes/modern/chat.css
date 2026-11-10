@@ -1,0 +1,423 @@
+/*
+ * The modern theme's chat (gd-chat), shared by every page that shows one (the hall; later the table draft and the
+ * game): imported by the page's stylesheet. Only the chat's own look and its default layout are here; the page
+ * places the chat, sizes it, and may lay its user list out beside the messages (set grid-template-* on the gd-chat).
+ *
+ * The default layout: the messages and the message box (the room) above the user list, its players as wrapping chips.
+ * Messages show their sender (and time) on a line of their own, the text below; the server's lines are muted, a ping
+ * ("@alice") and a mention ("alice") are tinted and marked at the start, a warning is tinted red.
+ */
+
+.gd-chat {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas: 'room' 'people';
+  min-width: 0;
+  min-height: 0;
+  background: var(--m-surface);
+  color: var(--m-text);
+  font-family: var(--m-font);
+  font-size: var(--m-font-size);
+  line-height: 1.45;
+}
+
+.gd-chat:not([data-users]) {
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: 'room';
+}
+
+/* ---------------------------------------------------------------- the room: messages and the message box */
+
+.gd-chat__room,
+.gd-discord-embed {
+  grid-area: room;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.gd-discord-embed {
+  background: var(--m-well);
+}
+
+.gd-discord-embed__widget {
+  position: absolute;
+  inset: 0;
+}
+
+.gd-chat__messages {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--m-space-2) 0;
+}
+
+.gd-chat__messages:focus-visible {
+  outline-offset: -2px;
+}
+
+.gd-chat__message {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: var(--m-space-2);
+  padding: 3px var(--m-space-3) 3px calc(var(--m-space-3) - 3px);
+  border-left: 3px solid transparent;
+  overflow-wrap: anywhere;
+}
+
+.gd-chat__message + .gd-chat__message {
+  margin-top: 2px;
+}
+
+.gd-chat__sender {
+  display: flex;
+  align-items: baseline;
+  gap: var(--m-space-2);
+  min-width: 0;
+}
+
+/* The sender first, then the time */
+.gd-chat__from {
+  order: -1;
+  font-weight: 600;
+}
+
+.gd-chat__time {
+  color: var(--m-text-faint);
+  font-size: var(--m-font-size-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.gd-chat__text {
+  flex: 1 0 100%;
+  min-width: 0;
+}
+
+.gd-chat__text p {
+  margin: 0;
+}
+
+.gd-chat__text a,
+.gd-chat__login {
+  color: var(--m-accent);
+}
+
+/* The server's lines (System, tournaments): muted */
+.gd-chat__message[data-kind='system'] {
+  color: var(--m-text-muted);
+}
+
+.gd-chat__message[data-kind='system'] .gd-chat__from {
+  font-weight: 500;
+}
+
+.gd-chat__message[data-kind='warning'] {
+  margin: var(--m-space-1) 0;
+  border-left-color: var(--m-danger);
+  background: color-mix(in srgb, var(--m-danger) 12%, transparent);
+  color: var(--m-danger);
+  font-weight: 500;
+}
+
+.gd-chat__message[data-highlight='mention'] {
+  border-left-color: color-mix(in srgb, var(--m-accent) 55%, transparent);
+  background: var(--m-accent-soft);
+}
+
+.gd-chat__message[data-highlight='ping'] {
+  border-left-color: var(--m-warning);
+  background: color-mix(in srgb, var(--m-warning) 14%, transparent);
+}
+
+.gd-chat__form {
+  flex: none;
+  display: flex;
+  margin: 0;
+  padding: var(--m-space-2) var(--m-space-3);
+  border-top: 1px solid var(--m-border);
+}
+
+.gd-chat__input {
+  flex: 1;
+  field-sizing: content;
+  min-width: 0;
+  min-height: var(--m-control-height);
+  max-height: 6.5lh;
+  box-sizing: border-box;
+  padding: 6px var(--m-space-3);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface-2);
+  color: var(--m-text);
+  font: inherit;
+  line-height: 1.4;
+  resize: none;
+  scroll-margin-bottom: var(--m-space-2);
+  transition:
+    border-color var(--m-transition),
+    background-color var(--m-transition);
+}
+
+.gd-chat__input::placeholder {
+  color: var(--m-text-faint);
+}
+
+.gd-chat__input:hover:enabled {
+  border-color: var(--m-border-strong);
+}
+
+.gd-chat__input:focus {
+  border-color: var(--m-accent);
+  background: var(--m-surface);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--m-accent-soft);
+}
+
+.gd-chat__input:disabled {
+  background: var(--m-well);
+  cursor: not-allowed;
+}
+
+/* ---------------------------------------------------------------- the user list */
+
+.gd-chat__people {
+  grid-area: people;
+  display: flex;
+  flex-direction: column;
+  gap: var(--m-space-2);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--m-space-2) var(--m-space-3);
+  border-top: 1px solid var(--m-border);
+  background: var(--m-surface-2);
+}
+
+.gd-chat__users {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--m-space-1);
+  min-height: 0;
+  max-height: 7.5em;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.gd-chat__user {
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-1);
+  min-width: 0;
+  max-width: 100%;
+}
+
+.gd-chat__user[data-self] {
+  padding: 0 2px 0 var(--m-space-2);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius-pill);
+  background: var(--m-surface);
+}
+
+.gd-chat__player {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: var(--m-space-1);
+  min-width: 0;
+  max-width: 100%;
+  min-height: 28px;
+  padding: 0 var(--m-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-surface-3);
+  color: var(--m-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background-color var(--m-transition),
+    border-color var(--m-transition);
+}
+
+.gd-chat__player:hover {
+  border-color: var(--m-border-strong);
+}
+
+.gd-chat__player[aria-expanded='true'] {
+  anchor-name: --gd-chat-menu;
+  border-color: var(--m-accent);
+  background: var(--m-accent-soft);
+}
+
+.gd-chat__user[data-self] .gd-chat__name {
+  font-weight: 600;
+}
+
+.gd-chat__user[data-self] {
+  min-height: 28px;
+}
+
+.gd-chat__user[data-ignored] .gd-chat__name {
+  color: var(--m-text-faint);
+  text-decoration: line-through;
+}
+
+.gd-chat__name {
+  flex: 0 1 auto;
+  min-width: 2.5em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gd-chat__role {
+  flex: 0 3 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 6px;
+  border-radius: var(--m-radius-pill);
+  background: var(--m-accent-soft);
+  color: var(--m-accent);
+  font-size: var(--m-font-size-xs);
+  font-weight: 600;
+  line-height: 18px;
+}
+
+/* The viewer's own online / incognito chip */
+.gd-chat__visibility {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 22px;
+  padding: 0 var(--m-space-2);
+  border: 0;
+  border-radius: var(--m-radius-pill);
+  background: color-mix(in srgb, var(--m-success) 16%, transparent);
+  color: var(--m-success);
+  font: inherit;
+  font-size: var(--m-font-size-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.gd-chat__visibility::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.gd-chat__visibility[data-incognito] {
+  background: var(--m-surface-3);
+  color: var(--m-text-muted);
+}
+
+.gd-chat__visibility[data-incognito]::before {
+  background: none;
+  box-shadow: inset 0 0 0 1.5px currentColor;
+}
+
+.gd-chat__menu {
+  position: fixed;
+  position-anchor: --gd-chat-menu;
+  top: calc(anchor(bottom) + 4px);
+  left: anchor(left);
+  position-try-fallbacks: flip-block, flip-inline;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-width: 11em;
+  margin: 0;
+  padding: var(--m-space-1);
+  border: 1px solid var(--m-border);
+  border-radius: var(--m-radius);
+  background: var(--m-surface);
+  box-shadow: var(--m-shadow-lg);
+}
+
+.gd-chat__menu-title {
+  margin: 0;
+  padding: var(--m-space-1) var(--m-space-2) var(--m-space-2);
+  border-bottom: 1px solid var(--m-border);
+  margin-bottom: var(--m-space-1);
+  color: var(--m-text-muted);
+  font-size: var(--m-font-size-sm);
+  font-weight: 600;
+}
+
+.gd-chat__menu-item {
+  min-height: var(--m-control-height);
+  padding: 0 var(--m-space-2);
+  border: 0;
+  border-radius: var(--m-radius-sm);
+  background: none;
+  color: var(--m-text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.gd-chat__menu-item:hover,
+.gd-chat__menu-item:focus {
+  background: var(--m-surface-2);
+  outline: none;
+}
+
+.gd-chat__menu-item:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--m-focus);
+}
+
+.gd-chat__status {
+  margin: 0;
+  color: var(--m-text-muted);
+  font-size: var(--m-font-size-sm);
+}
+
+.gd-chat__switch {
+  align-self: flex-start;
+}
+
+/* Hidden visually, kept for assistive technology */
+.gd-chat__label,
+.gd-chat__ignored,
+.gd-chat__status:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- touch screens */
+
+@media (pointer: coarse) {
+  .gd-chat__player,
+  .gd-chat__user[data-self] {
+    min-height: var(--m-control-height);
+  }
+
+  .gd-chat__visibility {
+    min-height: 34px;
+    padding: 0 var(--m-space-3);
+  }
+
+  /* 16px: phones don't zoom in on the message box when it takes the focus */
+  .gd-chat__input {
+    font-size: 16px;
+    padding-block: 10px;
+  }
+}
