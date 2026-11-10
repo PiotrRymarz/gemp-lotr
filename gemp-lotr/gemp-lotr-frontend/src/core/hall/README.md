@@ -151,6 +151,11 @@ The hall is split into five parts; 4.1a is the core of the frame and the chat, *
 - The "Unknown chat problem" warning reads "occurred" (legacy: "occured").
 - `HallComms.stop()` drops the request in flight and the pending poll (the legacy page never stopped).
 
+## Part 4.2a
+
+The tables core (sections, table data, Play popup's Casual and Bot flows, Join / Leave, started games) is in
+`tables/` with its own inventory: `tables/README.md`. `HallTablesService` is in `HALL_SERVICES`.
+
 ## Known gaps
 
 - The UI (4.1b) is `ui/hall/` (the page, the connection readout, the tabs' placeholders) and the shared
