@@ -3,6 +3,7 @@ package com.gempukku.lotro.game.state;
 import com.gempukku.lotro.common.*;
 import com.gempukku.lotro.communication.GameStateListener;
 import com.gempukku.lotro.game.*;
+import com.gempukku.lotro.logic.GameRandom;
 import com.gempukku.lotro.logic.PlayerOrder;
 import com.gempukku.lotro.logic.decisions.AwaitingDecision;
 import com.gempukku.lotro.logic.modifiers.ModifierFlag;
@@ -13,7 +14,6 @@ import org.apache.logging.log4j.Logger;
 
 import java.security.InvalidParameterException;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,6 +75,8 @@ public class GameState {
     private boolean _finished = false;
 
     private LotroGame _lotroGame;
+
+    private final GameRandom _random = new GameRandom();
 
     private final List<Assignment> _assignments = new LinkedList<>();
     private Skirmish _skirmish = null;
@@ -1651,9 +1653,14 @@ public class GameState {
         }
     }
 
+    /** This game's random draws (see {@link GameRandom}). */
+    public GameRandom getRandom() {
+        return _random;
+    }
+
     public void shuffleDeck(String player) {
         List<PhysicalCardImpl> deck = _decks.get(player);
-        Collections.shuffle(deck, ThreadLocalRandom.current());
+        Collections.shuffle(deck, _random.get());
     }
 
     public void sendGameStats(GameStats gameStats) {

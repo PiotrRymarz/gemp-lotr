@@ -1,6 +1,7 @@
 package com.gempukku.lotro.logic.timing.processes.pregame;
 
 import com.gempukku.lotro.game.state.LotroGame;
+import com.gempukku.lotro.logic.GameRandom;
 import com.gempukku.lotro.logic.decisions.DecisionResultInvalidException;
 import com.gempukku.lotro.logic.decisions.IntegerAwaitingDecision;
 import com.gempukku.lotro.logic.timing.PlayerOrderFeedback;
@@ -14,6 +15,7 @@ public class BiddingGameProcess implements GameProcess {
     private final Set<String> _players;
     private final PlayerOrderFeedback _playerOrderFeedback;
     private final Map<String, Integer> _bids = new LinkedHashMap<>();
+    private GameRandom _random;
 
     public BiddingGameProcess(Set<String> players, PlayerOrderFeedback playerOrderFeedback) {
         _players = players;
@@ -22,6 +24,7 @@ public class BiddingGameProcess implements GameProcess {
 
     @Override
     public void process(LotroGame game) {
+        _random = game.getGameState().getRandom();
         for (String player : _players) {
             final String decidingPlayer = player;
             int minimumBid = game.getModifiersQuerying().getMinimumBid(game, decidingPlayer);
@@ -45,6 +48,6 @@ public class BiddingGameProcess implements GameProcess {
 
     @Override
     public GameProcess getNextProcess() {
-        return new ChooseSeatingOrderGameProcess(_bids, _playerOrderFeedback);
+        return new ChooseSeatingOrderGameProcess(_bids, _playerOrderFeedback, _random);
     }
 }

@@ -145,7 +145,7 @@ public class CardResolver {
                         @Override
                         protected void doPlayEffect(LotroGame game) {
                             List<? extends PhysicalCard> hand = game.getGameState().getHand(handPlayer);
-                            List<PhysicalCard> randomCardsFromHand = GameUtils.getRandomCards(hand, count);
+                            List<PhysicalCard> randomCardsFromHand = GameUtils.getRandomCards(game, hand, count);
                             actionContext.setCardMemory(memory, randomCardsFromHand);
                         }
                     };
@@ -213,7 +213,7 @@ public class CardResolver {
                         @Override
                         protected void doPlayEffect(LotroGame game) {
                             List<? extends PhysicalCard> adventureDeck = game.getGameState().getAdventureDeck(playerDeck);
-                            List<PhysicalCard> randomCardsFromAdventureDeck = GameUtils.getRandomCards(adventureDeck, count);
+                            List<PhysicalCard> randomCardsFromAdventureDeck = GameUtils.getRandomCards(game, adventureDeck, count);
                             actionContext.setCardMemory(memory, randomCardsFromAdventureDeck);
                         }
                     };
