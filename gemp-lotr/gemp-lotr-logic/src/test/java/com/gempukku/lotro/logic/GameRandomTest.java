@@ -1,6 +1,7 @@
 package com.gempukku.lotro.logic;
 
 import com.gempukku.lotro.game.PhysicalCard;
+import com.gempukku.lotro.logic.timing.Action;
 import org.junit.Test;
 
 import java.lang.reflect.Proxy;
@@ -103,5 +104,29 @@ public class GameRandomTest {
         Set<PhysicalCard> set = new HashSet<>(List.of(card(147), card(9), card(143), card(31)));
         List<Integer> asTheSetHasThem = set.stream().map(PhysicalCard::getCardId).toList();
         withSeed(null, () -> assertEquals(asTheSetHasThem, ids(GameRandom.stableOrder(set))));
+    }
+
+    private static Action action(PhysicalCard card, String text) {
+        return (Action) Proxy.newProxyInstance(Action.class.getClassLoader(), new Class<?>[]{Action.class},
+                (proxy, method, args) -> switch (method.getName()) {
+                    case "getActionAttachedToCard" -> card;
+                    case "getText" -> text;
+                    case "hashCode" -> System.identityHashCode(proxy);
+                    case "equals" -> proxy == args[0];
+                    case "toString" -> text;
+                    default -> throw new UnsupportedOperationException(method.getName());
+                });
+    }
+
+    @Test
+    public void aSeededServerListsActionsByTheirCardThenTheirText() {
+        PhysicalCard axe = card(49);
+        PhysicalCard condition = card(50);
+        List<Action> actions = List.of(action(condition, "Discard the Orc"), action(null, "Resolve skirmish damage"),
+                action(axe, "Discard the top card"), action(axe, "A second action"));
+        withSeed("1", () -> assertEquals(
+                List.of("Resolve skirmish damage", "A second action", "Discard the top card", "Discard the Orc"),
+                GameRandom.stableActionOrder(null, actions).stream().map(a -> a.getText(null)).toList()));
+        withSeed(null, () -> assertSame(actions, GameRandom.stableActionOrder(null, actions)));
     }
 }
